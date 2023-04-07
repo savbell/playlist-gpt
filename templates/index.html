@@ -4,7 +4,7 @@
     <title>PlaylistGPT</title>
     <link
         rel="shortcut icon"
-        href="{{ url_for("static", filename="icon.png") }}"
+        href="{{ url_for("static", filename="playlistgpt-icon.png") }}"
     />
     <link rel="stylesheet" href="{{ url_for("static", filename="main.css") }}" />
     <script src="{{ url_for("static", filename="main.js") }}"></script>
@@ -12,13 +12,14 @@
 
 <body>
     <header class="header">
-        <img src="{{ url_for("static", filename="icon.png") }}" class="icon" alt="PlaylistGPT Icon" />
+        <img src="{{ url_for("static", filename="playlistgpt-icon.png") }}" class="icon" alt="PlaylistGPT Icon" />
         <h3>PlaylistGPT</h3>
     </header>
     <h4>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary code to answer it!</h4>
+
     <form action="/" method="post" role="search" id="playlist-form">
         <label for="playlist_name">Your playlist name:</label>
-        <input type="text" name="playlist_name" placeholder="Enter your playlist name exactly." value="{{ playlist_name }}" required />
+        <input type="text" name="playlist_name" placeholder="Enter your playlist name exactly." value="{{ playlist_name or '' }}" required />
 
         <label for="question">What you want to know about it:</label>
         <input type="text" name="question" placeholder="Enter your question." required />
@@ -28,23 +29,42 @@
     <div id="loading-indicator" style="display: none;">
         <p>Loading, please wait...</p>
     </div>
+
     {% if result %}
     <div class="result">
         <h5>Result:</h5>
         <p>{{ result }}</p>
     </div>
     {% endif %}
+
     {% if gpt_code %}
     <div class="code">
         <h5>Generated Code:</h5>
         <pre><code>{{ gpt_code }}</code></pre>
     </div>
     {% endif %}
+
     <div class="sample-questions">
         <h5>Sample questions:</h5>
         <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">What's the most popular song in my playlist?</a></p>
         <p><a href="#" onclick="fillQuestion('Which artists are featured most in my playlist?'); return false;">Which artists are featured most in my playlist?</a></p>
         <p><a href="#" onclick="fillQuestion('How many songs in my playlist are from the 80s?'); return false;">How many songs in my playlist are from the 80s?</a></p>
     </div>
+    
+    <footer class="footer">
+        <p>Created by Sav Bell</p>
+        <div class="social-links">
+            <a href="https://github.com/savbell/playlist-gpt" target="_blank" rel="noopener noreferrer" aria-label="PlaylistGPT's GitHub Page">
+                <img src="{{ url_for('static', filename='github-icon.png') }}" alt="GitHub Icon" class="social-icon" />
+            </a>
+            <a href="https://open.spotify.com/user/sav-bell" target="_blank" rel="noopener noreferrer" aria-label="Sav Bell's Spotify Profile">
+                <img src="{{ url_for('static', filename='spotify-icon.png') }}" alt="Spotify Icon" class="social-icon" />
+            </a>
+            <a href="https://www.linkedin.com/in/savbell/" target="_blank" rel="noopener noreferrer" aria-label="Sav Bell's LinkedIn Profile">
+                <img src="{{ url_for('static', filename='linkedin-icon.png') }}" alt="LinkedIn Icon" class="social-icon" />
+            </a>
+        </div>
+    </footer>
+    
 </body>
 </html>

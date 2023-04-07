@@ -130,3 +130,31 @@ code {
 .sample-questions a:hover {
   text-decoration: underline;
 }
+
+.footer {
+  width: 100%;
+  padding: 20px 0;
+  text-align: center;
+  background-color: #191414;
+  color: #b3b3b3;
+  font-size: 16px;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.social-icon {
+  width: 24px;
+  height: 24px;
+  margin: 0 10px;
+  filter: brightness(0) invert(1) grayscale(1) opacity(0.5);
+  transition: filter 0.3s ease;
+}
+
+.social-icon:hover {
+  filter: brightness(0) invert(1);
+}
