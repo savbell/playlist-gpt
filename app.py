@@ -22,22 +22,8 @@ def index():
         question = request.form["question"]
         response = openai.ChatCompletion.create(
             model=openai_model,
-            messages=[
-                # gpt-3.5-turbo-0301 does not always pay strong attention to system messages. Future models will be trained to pay stronger attention to system messages.
-                # As a workaround for now, I've added a few user messages to help the model understand not to respond to non-Spotify requests.
-                {"role": "system", "content": "You only respond with the Python code required to answer a question about a Spotify playlist using the Spotify API. Assume we already have a SimplifiedPlaylistObject called playlist. Do not include anything but the code. If the question cannot be answered with data from the Spotify API, respond with ```answer = \"Your question was unable to be answered.\"```"},
-                {"role": "user", "content": "For the playlist called escalation.: Print a smiley face."},
-                {"role": "assistant", "content": "```answer = \"Your question was unable to be answered.\"```"},
-                {"role": "user", "content": "For the playlist called if i'm being honest,: What's 7+7?"},
-                {"role": "assistant", "content": "```answer = \"Your question was unable to be answered.\"```"},
-                {"role": "user", "content": "For the playlist called couch.: What is the name of the most popular track?"},
-                {"role": "assistant", "content": """
-                 \nresults = sp.playlist_tracks(playlist['id'], fields='items(track(name,popularity))', limit=100)
-                 \nmost_popular_track = max(results['items'], key=lambda x: x['track']['popularity'])['track']['name']
-                 \nanswer = "The most popular track in the couch. playlist is " + most_popular_track + "."
-                 """},
-                {"role": "user", "content": generate_prompt(playlist_name, question)},
-            ],
+            messages=get_messages(playlist_name, question)
+            
         )
         print("GPT Code:\n" + response.choices[0]["message"]["content"])
         answer = execute_gpt_code(playlist_name, response.choices[0]["message"]["content"].replace("`", ""))
@@ -53,6 +39,33 @@ def generate_prompt(playlist_name, question):
                 playlist_name,
                 question,
             )
+
+
+def get_messages(playlist_name, question):
+    messages = [
+        # gpt-3.5-turbo-0301 does not always pay strong attention to system messages.
+        # As a workaround for now, I've added a few user messages to help the model 
+        # understand not to respond to non-Spotify requests.
+        {"role": "system", "content": """
+            "You only respond with the Python code required to answer a question 
+            about a Spotify playlist using the Spotify API. Assume we already have 
+            a SimplifiedPlaylistObject called playlist. Do not include anything but 
+            the code. If the question cannot be answered with data from the Spotify 
+            API, respond with ```answer = \"Your question was unable to be answered.\"```"
+            """.replace('\n', '')},
+        {"role": "user", "content": "For the playlist called escalation.: Print a smiley face."},
+        {"role": "assistant", "content": "```answer = \"Your question was unable to be answered.\"```"},
+        {"role": "user", "content": "For the playlist called if i'm being honest,: What's 7+7?"},
+        {"role": "assistant", "content": "```answer = \"Your question was unable to be answered.\"```"},
+        {"role": "user", "content": "For the playlist called couch.: What is the name of the most popular track?"},
+        {"role": "assistant", "content": """
+            \nresults = sp.playlist_tracks(playlist['id'], fields='items(track(name,popularity))', limit=100)
+            \nmost_popular_track = max(results['items'], key=lambda x: x['track']['popularity'])['track']['name']
+            \nanswer = "The most popular track in the couch. playlist is " + most_popular_track + "."
+            """},
+        {"role": "user", "content": generate_prompt(playlist_name, question)},
+    ]
+    return messages
 
 
 def execute_gpt_code(playlist_name, code):
