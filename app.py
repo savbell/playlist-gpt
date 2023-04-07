@@ -17,20 +17,18 @@ redirect_uri = os.getenv("SPOTIFY_REDIRECT_URI")
 
 @app.route("/", methods=("GET", "POST"))
 def index():
+    result = playlist_name = gpt_code = None
     if request.method == "POST":
-        playlist_name = request.form["playlist"]
+        playlist_name = request.form["playlist_name"]
         question = request.form["question"]
         response = openai.ChatCompletion.create(
             model=openai_model,
             messages=get_messages(playlist_name, question)
-            
         )
-        print("GPT Code:\n" + response.choices[0]["message"]["content"])
-        answer = execute_gpt_code(playlist_name, response.choices[0]["message"]["content"].replace("`", ""))
-        return redirect(url_for("index", result=answer))
+        gpt_code = response.choices[0]["message"]["content"]
+        result = execute_gpt_code(playlist_name, gpt_code.replace("`", ""))
+    return render_template("index.html", result=result, playlist_name=playlist_name, gpt_code=gpt_code)
 
-    result = request.args.get("result")
-    return render_template("index.html", result=result)
 
 
 def generate_prompt(playlist_name, question):

@@ -7,6 +7,7 @@
         href="{{ url_for("static", filename="icon.png") }}"
     />
     <link rel="stylesheet" href="{{ url_for("static", filename="main.css") }}" />
+    <script src="{{ url_for("static", filename="main.js") }}"></script>
 </head>
 
 <body>
@@ -15,23 +16,35 @@
         <h3>PlaylistGPT</h3>
     </header>
     <h4>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary code to answer it!</h4>
-    <form action="/" method="post" role="search">
-        <label for="playlist">Your playlist name:</label>
-        <input type="text" name="playlist" placeholder="Enter your playlist name exactly." required />
+    <form action="/" method="post" role="search" id="playlist-form">
+        <label for="playlist_name">Your playlist name:</label>
+        <input type="text" name="playlist_name" placeholder="Enter your playlist name exactly." value="{{ playlist_name }}" required />
 
         <label for="question">What you want to know about it:</label>
         <input type="text" name="question" placeholder="Enter your question." required />
 
         <input type="submit" value="Find out!" title="Submit your question" />
     </form>
+    <div id="loading-indicator" style="display: none;">
+        <p>Loading, please wait...</p>
+    </div>
     {% if result %}
-    <div class="result">{{ result }}</div>
+    <div class="result">
+        <h5>Result:</h5>
+        <p>{{ result }}</p>
+    </div>
+    {% endif %}
+    {% if gpt_code %}
+    <div class="code">
+        <h5>Generated Code:</h5>
+        <pre><code>{{ gpt_code }}</code></pre>
+    </div>
     {% endif %}
     <div class="sample-questions">
         <h5>Sample questions:</h5>
-        <p>What's the most popular song in my playlist?</p>
-        <p>Which artists are featured most in my playlist?</p>
-        <p>How many songs in my playlist are from the 80s?</p>
+        <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">What's the most popular song in my playlist?</a></p>
+        <p><a href="#" onclick="fillQuestion('Which artists are featured most in my playlist?'); return false;">Which artists are featured most in my playlist?</a></p>
+        <p><a href="#" onclick="fillQuestion('How many songs in my playlist are from the 80s?'); return false;">How many songs in my playlist are from the 80s?</a></p>
     </div>
 </body>
 </html>
