@@ -13,9 +13,9 @@
 <body>
     <header class="header">
         <img src="{{ url_for("static", filename="playlistgpt-icon.png") }}" class="icon" alt="PlaylistGPT Icon" />
-        <h3>PlaylistGPT</h3>
+        <h1>PlaylistGPT</h1>
     </header>
-    <h4>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h4>
+    <h3>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h3>
 
     <form action="/" method="post" role="search" id="playlist-form">
         <label for="playlist_name">Your playlist name:</label>
@@ -26,26 +26,27 @@
 
         <input type="submit" value="Find out!" title="Submit your question" />
     </form>
-    <div id="loading-indicator" style="display: none;">
+    <div class="loading-indicator" id="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
         <p>Loading, please wait...</p>
     </div>
 
     {% if result %}
     <div class="result">
-        <h5>Result:</h5>
-        <p>{{ result }}</p>
+        <h2>Result:</h2>
+        <p>{{ result|safe }}</p>
     </div>
     {% endif %}
 
     {% if gpt_code %}
     <div class="code">
-        <h5>Generated Code:</h5>
+        <h2>Generated Code:</h2>
         <pre><code>{{ gpt_code }}</code></pre>
     </div>
     {% endif %}
 
     <div class="sample-questions">
-        <h5>Sample questions:</h5>
+        <h2>Sample questions:</h2>
         <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">
             What's the most popular song in my playlist?
         </a></p>
@@ -61,13 +62,13 @@
         <p>Created by Sav Bell</p>
         <div class="social-links">
             <a href="https://github.com/savbell/playlist-gpt" target="_blank" rel="noopener noreferrer" aria-label="PlaylistGPT's GitHub Page">
-                <img src="{{ url_for('static', filename='github-icon.png') }}" alt="GitHub Icon" class="social-icon" />
+                <img src="{{ url_for("static", filename="github-icon.png") }}" alt="GitHub Icon" class="social-icon" />
             </a>
             <a href="https://open.spotify.com/user/sav-bell" target="_blank" rel="noopener noreferrer" aria-label="Sav Bell's Spotify Profile">
-                <img src="{{ url_for('static', filename='spotify-icon.png') }}" alt="Spotify Icon" class="social-icon" />
+                <img src="{{ url_for("static", filename="spotify-icon.png") }}" alt="Spotify Icon" class="social-icon" />
             </a>
             <a href="https://www.linkedin.com/in/savbell/" target="_blank" rel="noopener noreferrer" aria-label="Sav Bell's LinkedIn Profile">
-                <img src="{{ url_for('static', filename='linkedin-icon.png') }}" alt="LinkedIn Icon" class="social-icon" />
+                <img src="{{ url_for("static", filename="linkedin-icon.png") }}" alt="LinkedIn Icon" class="social-icon" />
             </a>
         </div>
     </footer>

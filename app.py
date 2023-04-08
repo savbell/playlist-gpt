@@ -23,7 +23,7 @@ def index():
         question = request.form["question"]
         response = openai.ChatCompletion.create(
             model=openai_model,
-            messages=get_messages(playlist_name, question)
+            messages=get_messages(playlist_name, question),
         )
         gpt_code = response.choices[0]["message"]["content"]
         result = execute_gpt_code(playlist_name, gpt_code.replace("`", ""))
@@ -60,7 +60,8 @@ def get_messages(playlist_name, question):
         {"role": "assistant", "content": """
             \nresults = sp.playlist_tracks(playlist['id'], fields='items(track(name,popularity))', limit=100)
             \nmost_popular_track = max(results['items'], key=lambda x: x['track']['popularity'])['track']['name']
-            \nanswer = "The most popular track in the couch. playlist is " + most_popular_track + "."
+            \nanswer = "The most popular track in the <a href='" + playlist['external_urls']['spotify'] + \
+            "' target='_blank'>couch.</a> playlist is " + most_popular_track + "."
             """},
         {"role": "user", "content": generate_prompt(playlist_name, question)},
     ]
