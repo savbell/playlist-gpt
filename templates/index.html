@@ -15,7 +15,7 @@
         <img src="{{ url_for("static", filename="playlistgpt-icon.png") }}" class="icon" alt="PlaylistGPT Icon" />
         <h3>PlaylistGPT</h3>
     </header>
-    <h4>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary code to answer it!</h4>
+    <h4>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h4>
 
     <form action="/" method="post" role="search" id="playlist-form">
         <label for="playlist_name">Your playlist name:</label>
@@ -46,9 +46,15 @@
 
     <div class="sample-questions">
         <h5>Sample questions:</h5>
-        <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">What's the most popular song in my playlist?</a></p>
-        <p><a href="#" onclick="fillQuestion('Which artists are featured most in my playlist?'); return false;">Which artists are featured most in my playlist?</a></p>
-        <p><a href="#" onclick="fillQuestion('How many songs in my playlist are from the 80s?'); return false;">How many songs in my playlist are from the 80s?</a></p>
+        <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">
+            What's the most popular song in my playlist?
+        </a></p>
+        <p><a href="#" onclick="fillQuestion('Which artists are featured most in my playlist?'); return false;">
+            Which artists are featured most in my playlist?
+        </a></p>
+        <p><a href="#" onclick="fillQuestion('How many songs in my playlist are from the 80s?'); return false;">
+            How many songs in my playlist are from the 80s?
+        </a></p>
     </div>
     
     <footer class="footer">

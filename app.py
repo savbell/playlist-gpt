@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 import openai
 import os
-from flask import Flask, redirect, render_template, request, url_for
+from flask import Flask, render_template, request
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -48,8 +48,9 @@ def get_messages(playlist_name, question):
             "You only respond with the Python code required to answer a question 
             about a Spotify playlist using the Spotify API. Assume we already have 
             a SimplifiedPlaylistObject called playlist. Do not include anything but 
-            the code. If the question cannot be answered with data from the Spotify 
-            API, respond with ```answer = \"Your question was unable to be answered.\"```"
+            the code. Account for the possibility of some fields being empty. If the 
+            question cannot be answered with data from the Spotify API, respond with 
+            ```answer = \"Your question was unable to be answered.\"```"
             """.replace('\n', '')},
         {"role": "user", "content": "For the playlist called escalation.: Print a smiley face."},
         {"role": "assistant", "content": "```answer = \"Your question was unable to be answered.\"```"},
