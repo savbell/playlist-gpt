@@ -47,9 +47,9 @@ copy .env.example .env # For Windows
 OPENAI_API_KEY=your_openai_key_here
 OPENAI_MODEL=gpt-3.5-turbo
 
-SPOTIFY_CLIENT_ID=your_spotify_client_id_here
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
-SPOTIFY_REDIRECT_URI=your_spotify_redirect_uri_here
+SPOTIPY_CLIENT_ID=your_spotify_client_id_here
+SPOTIPY_CLIENT_SECRET=your_spotify_client_secret_here
+SPOTIPY_REDIRECT_URI=your_spotify_redirect_uri_here
 ```
 
 
