@@ -22,15 +22,22 @@ openai_model = os.getenv("OPENAI_MODEL")
 def index():
     result = playlist_name = gpt_code = None
     if request.method == "POST":
+        form_type = request.form["form_type"]
         playlist_name = request.form["playlist_name"]
-        question = request.form["question"]
-        response = openai.ChatCompletion.create(
-            model=openai_model,
-            messages=get_messages(playlist_name, question),
-        )
-        gpt_code = response.choices[0]["message"]["content"]
-        result = execute_gpt_code(playlist_name, extract_code(gpt_code))
-    return render_template("index.html", result=result, playlist_name=playlist_name, gpt_code=gpt_code)
+        if form_type == "playlist":
+            question = request.form["question"]
+            response = openai.ChatCompletion.create(
+                model=openai_model,
+                messages=get_messages(playlist_name, question),
+            )
+            gpt_code = response.choices[0]["message"]["content"]
+        elif form_type == "code":
+            gpt_code = request.form["gpt_code"]
+            print(gpt_code)
+            print(extract_code(gpt_code))
+            result = execute_gpt_code(playlist_name, extract_code(gpt_code))
+        return render_template("index.html", result=result, playlist_name=playlist_name, gpt_code=gpt_code)
+    return render_template("index.html")
 
 
 def generate_prompt(playlist_name, question):
@@ -100,7 +107,7 @@ def get_messages(playlist_name, question):
 
 
 def extract_code(response):
-    code = re.search(r"^```(.*?)```$", response, re.MULTILINE | re.DOTALL)
+    code = re.search(r"```(.*?)```", response, re.MULTILINE | re.DOTALL)
     return code.group(1).replace("python", "") if code else response.replace("python", "")
 
 

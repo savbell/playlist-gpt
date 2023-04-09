@@ -18,6 +18,8 @@
     <h3>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h3>
 
     <form action="/" method="post" role="search" id="playlist-form">
+        <input type="hidden" name="form_type" value="playlist">
+
         <label for="playlist_name">Your playlist name:</label>
         <input type="text" name="playlist_name" placeholder="Enter your playlist name exactly." value="{{ playlist_name or '' }}" required />
 
@@ -42,16 +44,22 @@
     <div class="code">
         <h2>Generated Code:</h2>
         <pre><code>{{ gpt_code }}</code></pre>
+        <form action="/" method="post" role="search" id="code-form">
+            <input type="hidden" name="form_type" value="code">
+            <input type="hidden" name="playlist_name" value="{{ playlist_name }}">
+            <input type="hidden" name="gpt_code" value="{{ gpt_code }}">
+            <input type="submit" value="Looks good – run code!" title="Run generated code" />
+        </form>
     </div>
     {% endif %}
 
     <div class="sample-questions">
         <h2>Sample questions:</h2>
+        <p><a href="#" onclick="fillQuestion('What is the top genre in my playlist?'); return false;">
+            What is the top genre in my playlist?
+        </a></p>
         <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">
             What's the most popular song in my playlist?
-        </a></p>
-        <p><a href="#" onclick="fillQuestion('What are the top three genres in my playlist?'); return false;">
-            What are the top three genres in my playlist?
         </a></p>
         <p><a href="#" onclick="fillQuestion('How many songs in my playlist are from the 80s?'); return false;">
             How many songs in my playlist are from the 80s?
