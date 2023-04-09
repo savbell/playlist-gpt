@@ -6,7 +6,7 @@ import traceback
 
 # Third-party imports
 from dotenv import load_dotenv
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 import openai
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
@@ -38,6 +38,13 @@ def index():
             result = execute_gpt_code(playlist_name, extract_code(gpt_code))
         return render_template("index.html", result=result, playlist_name=playlist_name, gpt_code=gpt_code)
     return render_template("index.html")
+
+@app.route("/playlists", methods=("GET",))
+def get_playlists():
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private"))
+    playlists = sp.current_user_playlists(limit=50)
+    response = [{"name": playlist["name"], "id": playlist["id"]} for playlist in playlists["items"]]
+    return jsonify(response)
 
 
 def generate_prompt(playlist_name, question):

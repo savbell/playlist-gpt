@@ -20,11 +20,15 @@
     <form action="/" method="post" role="search" id="playlist-form">
         <input type="hidden" name="form_type" value="playlist">
 
-        <label for="playlist_name">Your playlist name:</label>
-        <input type="text" name="playlist_name" placeholder="Enter your playlist name exactly." value="{{ playlist_name or '' }}" required />
+        <label for="playlist-input">Your playlist:</label>
+        <div class="input-wrapper">
+            <input type="text" id="playlist-input" name="playlist_name" placeholder="Enter your playlist name exactly." 
+                required autocomplete="off" aria-autocomplete="list" aria-controls="playlist-suggestions" />
+            <div id="playlist-suggestions" class="suggestions" role="listbox"></div>
+        </div>
 
         <label for="question">What you want to know about it:</label>
-        <input type="text" name="question" placeholder="Enter your question." required />
+        <input type="text" name="question" id="question-input" placeholder="Enter your question." required />
 
         <input type="submit" value="Find out!" title="Submit your question" />
     </form>
