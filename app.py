@@ -35,19 +35,25 @@ def index():
             gpt_response = request.form["gpt_response"]
             gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
             result = execute_gpt_code(playlist_name, gpt_code, gpt_comments)
-        return render_template("index.html", result=result, playlist_name=playlist_name, gpt_response=gpt_response)
+        return jsonify(result=result, playlist_name=playlist_name, gpt_response=gpt_response)
     return render_template("index.html")
 
 @app.route("/playlists", methods=("GET",))
 def get_playlists():
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private"))
-    playlists = sp.current_user_playlists(limit=50)
-    response = [{"name": playlist["name"], "id": playlist["id"]} for playlist in playlists["items"]]
-    return jsonify(response)
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
+    playlists = []
+    offset = 0
+    while True:
+        response = sp.current_user_playlists(limit=50, offset=offset)
+        playlists += [{"name": playlist["name"], "id": playlist["id"]} for playlist in response["items"]]
+        if response["next"] is None:
+            break
+        offset += 50
+    return jsonify(playlists)
 
 @app.route("/playlist-info/<string:playlist_id>", methods=("GET",))
 def get_playlist_info(playlist_id):
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private"))
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
     playlist = sp.playlist(playlist_id)
     return jsonify(playlist)
 
@@ -138,7 +144,7 @@ def extract_code_and_comments(response):
 
 def execute_gpt_code(playlist_name, code, comments=""):
     try:
-        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private"))
+        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
     except Exception as e:
         return "There was an error connecting to your Spotify account: {}".format(e)
     

@@ -9,6 +9,55 @@ function filterPlaylists(input) {
   return playlists.filter((playlist) => playlist.name.toLowerCase().startsWith(input.toLowerCase()));
 }
 
+function showLoadingIndicator() {
+  const loadingIndicator = document.getElementById('loading-indicator');
+  loadingIndicator.style.display = 'block';
+}
+
+function hideLoadingIndicator() {
+const loadingIndicator = document.getElementById('loading-indicator');
+loadingIndicator.style.display = 'none';
+}
+
+function updateUI(data) {
+  const { result, playlist_name, gpt_response } = data;
+
+  if (gpt_response) {
+    document.getElementById("generated-response").textContent = gpt_response;
+    document.getElementById("hidden-playlist-name").value = playlist_name;
+    document.getElementById("hidden-gpt-response").value = gpt_response;
+    document.querySelector(".code").style.display = "block";
+  }
+  if (result) {
+    document.getElementById("result-text").innerHTML = result;
+    document.querySelector(".result").style.display = "block";
+  }
+} 
+
+async function sendFormData(url, formData) {
+  const response = await fetch(url, {
+    method: "POST",
+    body: formData,
+  });
+  return await response.json();
+}
+
+async function submitForm(event) {
+  event.preventDefault();
+  showLoadingIndicator();
+  const formData = new FormData(event.target);
+  const result = await sendFormData("/", formData);
+  hideLoadingIndicator();
+  updateUI(result);
+}
+
+function initializeForms() {
+  const forms = document.querySelectorAll('form');
+  forms.forEach((form) => {
+    form.addEventListener('submit', submitForm);
+  });
+}
+
 function decodeHtmlEntities(str) {
   const textarea = document.createElement('textarea');
   textarea.innerHTML = str;
@@ -28,34 +77,18 @@ async function displayPlaylistInfo(playlistId) {
     || "Unavailable";
   document.getElementById('author-name').href = playlistInfo.owner.external_urls.spotify || "#";
   document.getElementById('playlist-info').style.display = 'block';
-}
 
-function fillQuestion(question) {
-    document.querySelector('input[name="question"]').value = question;
+  if (data.result) {
+    displayResult(data);
   }
 
-function showLoadingIndicator() {
-    const loadingIndicator = document.getElementById('loading-indicator');
-    loadingIndicator.style.display = 'block';
-  }
-  
-function submitForm() {
-  const form = document.getElementById('playlist-form');
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    showLoadingIndicator();
-    form.submit();
-  });
-}
-
-function submitCodeForm() {
-  const codeForm = document.getElementById('code-form');
-  if (codeForm) {
-    codeForm.addEventListener('submit', (event) => {
-      event.preventDefault();
-      showLoadingIndicator();
-      codeForm.submit();
-    });
+  if (data.gpt_response) {
+    document.querySelector('.code').style.display = 'block';
+    document.querySelector('#generated-code').textContent = data.gpt_response;
+    document.querySelector('#hidden-playlist-name').value = data.playlist_name;
+    document.querySelector('#hidden-gpt-response').value = data.gpt_response;
+  } else {
+    document.querySelector('.code').style.display = 'none';
   }
 }
 
@@ -94,9 +127,13 @@ function initializePlaylistAutocomplete() {
   playlistInput.classList.add('playlist-search-input');
 }
 
+function fillQuestion(question) {
+  document.querySelector('input[name="question"]').value = question;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  initializeForms();
   initializePlaylistAutocomplete();
-  submitForm();
-  submitCodeForm();
   fetchPlaylists();
 });
+ 
