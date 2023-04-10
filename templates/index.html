@@ -29,14 +29,10 @@
         </div>
 
         <label for="question">What you want to know about it:</label>
-        <input type="text" name="question" id="question-input" placeholder="Enter your question." required />
+        <input type="text" name="question" id="question-input" autocomplete="off" placeholder="Enter your question." required />
 
         <input type="submit" value="Find out!" title="Submit your question" />
     </form>
-    <div class="loading-indicator" id="loading-indicator" style="display: none;">
-        <div class="spinner"></div>
-        <p>Loading, please wait...</p>
-    </div>
 
     <div id="playlist-info" class="playlist-info" style="display: none;">
         <div class="playlist-info-container">
@@ -51,9 +47,15 @@
         </div>
     </div>
 
+    <div class="loading-indicator" id="loading-indicator" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading, please wait...</p>
+    </div>
+
     <div class="result" style="display:none">
         <h2>Result:</h2>
         <p id="result-text"></p>
+        <button class="button" id="toggle-code-button" aria-label="Toggle generated code visibility">Show generated code</button>
     </div>
 
     <div class="code" style="display:none">

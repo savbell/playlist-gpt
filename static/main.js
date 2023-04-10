@@ -15,8 +15,8 @@ function showLoadingIndicator() {
 }
 
 function hideLoadingIndicator() {
-const loadingIndicator = document.getElementById('loading-indicator');
-loadingIndicator.style.display = 'none';
+  const loadingIndicator = document.getElementById('loading-indicator');
+  loadingIndicator.style.display = 'none';
 }
 
 function updatePlaylistUI(playlistInfo) {
@@ -50,12 +50,14 @@ function updateUI(data) {
   if (result) {
     document.getElementById("result-text").innerHTML = result;
     document.querySelector(".result").style.display = "block";
+    document.querySelector(".code").style.display = "none";
+    document.getElementById("toggle-code-button").checked = false;
   }
   if (playlist_id) {
     displayPlaylistInfo(playlist_id);
   }
+  updateToggleButtonText();
 }
-
 
 async function sendFormData(url, formData) {
   const response = await fetch(url, {
@@ -68,6 +70,13 @@ async function sendFormData(url, formData) {
 async function submitForm(event) {
   event.preventDefault();
   showLoadingIndicator();
+
+  document.querySelector(".result").style.display = "none";
+  if (event.target.id === "playlist-form") {
+      document.querySelector(".code").style.display = "none";
+  } else if (event.target.id === "code-form") {
+      document.querySelector(".code").style.display = "none";
+  }
 
   const formData = new FormData(event.target);
   const playlistId = document.querySelector('#playlist-input').value;
@@ -126,6 +135,33 @@ function initializePlaylistAutocomplete() {
   playlistInput.classList.add('playlist-search-input');
 }
 
+function updateToggleButtonText() {
+  const codeDiv = document.querySelector(".code");
+  const toggleCodeButton = document.getElementById("toggle-code-button");
+  if (codeDiv.style.display === "block") {
+    toggleCodeButton.textContent = "Hide generated code";
+  } else {
+    toggleCodeButton.textContent = "Show generated code";
+  }
+}
+
+function toggleGeneratedCode() {
+  const codeDiv = document.querySelector(".code");
+  if (codeDiv.style.display === "block") {
+    codeDiv.style.display = "none";
+  } else {
+    codeDiv.style.display = "block";
+  }
+  updateToggleButtonText();
+}
+
+function initializeToggleCodeButton() {
+  const toggleCodeButton = document.getElementById("toggle-code-button");
+  toggleCodeButton.addEventListener("click", () => {
+    toggleGeneratedCode();
+  });
+}
+
 function fillQuestion(question) {
   document.querySelector('input[name="question"]').value = question;
 }
@@ -134,4 +170,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeForms();
   initializePlaylistAutocomplete();
   fetchPlaylists();
+  initializeToggleCodeButton();
 });

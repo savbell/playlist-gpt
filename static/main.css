@@ -126,7 +126,7 @@ input[type="text"]::placeholder {
   display: none !important;
 }
 
-input[type="submit"] {
+input[type="submit"], .button {
   padding: 10px;
   font-size: 14px;
   font-weight: bold;
@@ -140,7 +140,7 @@ input[type="submit"] {
   max-width: 100%;
 }
 
-input[type="submit"]:hover {
+input[type="submit"]:hover, .button:hover {
   background-color: #1ed760;
 }
 
@@ -293,7 +293,7 @@ input[type="submit"]:hover {
 
 .result {
   max-width: 800px;
-  margin-top: 30px;
+  margin-top: 12px;
   font-size: 18px;
   text-align: center;
   margin-left: auto;
