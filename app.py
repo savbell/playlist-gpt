@@ -20,10 +20,11 @@ openai_model = os.getenv("OPENAI_MODEL")
 
 @app.route("/", methods=("GET", "POST"))
 def index():
-    result = playlist_name = gpt_response = gpt_comments = None
+    result = playlist_name = gpt_response = gpt_comments = playlist_id = None
     if request.method == "POST":
         form_type = request.form["form_type"]
         playlist_name = request.form["playlist_name"]
+        playlist_id = request.form["playlist_id"]
         if form_type == "playlist":
             question = request.form["question"]
             response = openai.ChatCompletion.create(
@@ -35,8 +36,9 @@ def index():
             gpt_response = request.form["gpt_response"]
             gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
             result = execute_gpt_code(playlist_name, gpt_code, gpt_comments)
-        return jsonify(result=result, playlist_name=playlist_name, gpt_response=gpt_response)
+        return jsonify(result=result, playlist_name=playlist_name, gpt_response=gpt_response, playlist_id=playlist_id)
     return render_template("index.html")
+
 
 @app.route("/playlists", methods=("GET",))
 def get_playlists():
@@ -89,14 +91,27 @@ def get_messages(playlist_name, question):
             What's 7+7?
         """)},
         {"role": "assistant", "content": "answer = \"Your question was unable to be answered because it is not related to the playlist.\""},
-        {"role": "user", "content": textwrap.dedent("""
+                {"role": "user", "content": textwrap.dedent("""
             Use only data available through the Spotify API. For the playlist called couch.: 
             What is the least popular track?
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
+            def get_all_playlist_tracks(playlist_id, sp):
+                tracks = []
+                offset = 0
+                limit = 100
+                while True:
+                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
+                    tracks.extend(batch['items'])
+                    if len(batch['items']) < limit:
+                        break
+                    offset += limit
+                return tracks
+
             playlist = sp.playlist(playlist_id)
-            least_popular_track = min(playlist['tracks']['items'], key=lambda x: x['track']['popularity'])['track']
+            all_tracks = get_all_playlist_tracks(playlist_id, sp)
+            least_popular_track = min(all_tracks, key=lambda x: x['track']['popularity'])['track']
             if 'name' in least_popular_track:
                 track_name = least_popular_track['name']
                 track_link = least_popular_track['external_urls']['spotify']
@@ -111,19 +126,35 @@ def get_messages(playlist_name, question):
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
-            tracks = sp.playlist_tracks(playlist_id, fields='items(track(name, artists(id)))')['items']
-            artists = set([artist['track']['artists'][0]['id'] for artist in tracks])
-            artist_info = sp.artists(artists)['artists']
-            genre_count = {}
-            for artist in artist_info:
-                for genre in artist['genres']:
-                    if genre in genre_count:
-                        genre_count[genre] += 1
-                    else:
-                        genre_count[genre] = 1
-            top_genres = sorted(genre_count.items(), key=lambda x: x[1], reverse=True)[:3]
-            top_genres = [genre[0] for genre in top_genres]
-            answer = f"The top three genres in the <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist are: {', '.join(top_genres)}"
+            def get_all_playlist_tracks(playlist_id, sp):
+                tracks, offset, limit = [], 0, 100
+                while True:
+                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
+                    tracks.extend(batch['items'])
+                    if len(batch['items']) < limit: break
+                    offset += limit
+                return tracks
+
+            def get_artist_info_batched(artist_ids, sp, batch_size=50):
+                artist_info = []
+                for i in range(0, len(artist_ids := list(artist_ids)), batch_size):
+                    artist_info.extend(sp.artists(artist_ids[i:i + batch_size])['artists'])
+                return artist_info
+
+            playlist, all_tracks = sp.playlist(playlist_id), get_all_playlist_tracks(playlist_id, sp)
+            artists = {artist['track']['artists'][0]['id'] for artist in all_tracks}
+
+            if not artists:
+                answer = "The top genre could not be found because there are no artists in the playlist."
+            else:
+                artist_info = get_artist_info_batched(artists, sp)
+                genre_count = {}
+                for artist in artist_info:
+                    for genre in artist['genres']:
+                        genre_count[genre] = genre_count.get(genre, 0) + 1
+
+                top_genres = sorted(genre_count.items(), key=lambda x: x[1], reverse=True)[:3]
+                answer = f"The top genres in <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist are {', '.join([genre[0] for genre in top_genres])}."
             ```
         """)},
         {"role": "user", "content": generate_prompt(playlist_name, question)},

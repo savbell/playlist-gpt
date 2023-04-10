@@ -19,8 +19,27 @@ const loadingIndicator = document.getElementById('loading-indicator');
 loadingIndicator.style.display = 'none';
 }
 
+function updatePlaylistUI(playlistInfo) {
+  document.getElementById('playlist-name').innerHTML = `<a href="${playlistInfo.external_urls.spotify}" target="_blank">
+    ${decodeHtmlEntities(playlistInfo.name)}</a>`;
+  document.getElementById('playlist-image').src = playlistInfo.images[0].url || "";
+  document.getElementById('playlist-description').textContent = decodeHtmlEntities(playlistInfo.description) 
+    || "No description provided.";
+  document.getElementById('author-name').textContent = decodeHtmlEntities(playlistInfo.owner.display_name) 
+    || "Unavailable";
+  document.getElementById('author-name').href = playlistInfo.owner.external_urls.spotify || "#";
+  document.getElementById('playlist-info').style.display = 'block';
+}
+
+async function displayPlaylistInfo(playlistId) {
+  const response = await fetch(`/playlist-info/${playlistId}`);
+  const playlistInfo = await response.json();
+
+  updatePlaylistUI(playlistInfo);
+}
+
 function updateUI(data) {
-  const { result, playlist_name, gpt_response } = data;
+  const { result, playlist_name, gpt_response, playlist_id } = data;
 
   if (gpt_response) {
     document.getElementById("generated-response").textContent = gpt_response;
@@ -32,7 +51,11 @@ function updateUI(data) {
     document.getElementById("result-text").innerHTML = result;
     document.querySelector(".result").style.display = "block";
   }
-} 
+  if (playlist_id) {
+    displayPlaylistInfo(playlist_id);
+  }
+}
+
 
 async function sendFormData(url, formData) {
   const response = await fetch(url, {
@@ -45,8 +68,12 @@ async function sendFormData(url, formData) {
 async function submitForm(event) {
   event.preventDefault();
   showLoadingIndicator();
+
   const formData = new FormData(event.target);
+  const playlistId = document.querySelector('#playlist-input').value;
+  formData.append('playlist_id', playlistId);
   const result = await sendFormData("/", formData);
+
   hideLoadingIndicator();
   updateUI(result);
 }
@@ -62,34 +89,6 @@ function decodeHtmlEntities(str) {
   const textarea = document.createElement('textarea');
   textarea.innerHTML = str;
   return textarea.value;
-}
-
-async function displayPlaylistInfo(playlistId) {
-  const response = await fetch(`/playlist-info/${playlistId}`);
-  const playlistInfo = await response.json();
-
-  document.getElementById('playlist-name').innerHTML = `<a href="${playlistInfo.external_urls.spotify}" target="_blank">
-    ${decodeHtmlEntities(playlistInfo.name)}</a>`;
-  document.getElementById('playlist-image').src = playlistInfo.images[0].url || "";
-  document.getElementById('playlist-description').textContent = decodeHtmlEntities(playlistInfo.description) 
-    || "No description provided.";
-  document.getElementById('author-name').textContent = decodeHtmlEntities(playlistInfo.owner.display_name) 
-    || "Unavailable";
-  document.getElementById('author-name').href = playlistInfo.owner.external_urls.spotify || "#";
-  document.getElementById('playlist-info').style.display = 'block';
-
-  if (data.result) {
-    displayResult(data);
-  }
-
-  if (data.gpt_response) {
-    document.querySelector('.code').style.display = 'block';
-    document.querySelector('#generated-code').textContent = data.gpt_response;
-    document.querySelector('#hidden-playlist-name').value = data.playlist_name;
-    document.querySelector('#hidden-gpt-response').value = data.gpt_response;
-  } else {
-    document.querySelector('.code').style.display = 'none';
-  }
 }
 
 function initializePlaylistAutocomplete() {
@@ -136,4 +135,3 @@ document.addEventListener("DOMContentLoaded", () => {
   initializePlaylistAutocomplete();
   fetchPlaylists();
 });
- 
