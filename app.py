@@ -36,9 +36,7 @@ def index():
             gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
             result = execute_gpt_code(playlist_name, gpt_code, gpt_comments)
         return render_template("index.html", result=result, playlist_name=playlist_name, gpt_response=gpt_response)
-
     return render_template("index.html")
-
 
 @app.route("/playlists", methods=("GET",))
 def get_playlists():
@@ -47,9 +45,15 @@ def get_playlists():
     response = [{"name": playlist["name"], "id": playlist["id"]} for playlist in playlists["items"]]
     return jsonify(response)
 
+@app.route("/playlist-info/<string:playlist_id>", methods=("GET",))
+def get_playlist_info(playlist_id):
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private"))
+    playlist = sp.playlist(playlist_id)
+    return jsonify(playlist)
+
 
 def generate_prompt(playlist_name, question):
-    return """Use only data available through the Spotify API. For the playlist called {}, answer: {}
+    return """Use only data available through the Spotify API. For the playlist called {}: {}
         """.format(
                 playlist_name,
                 question,
@@ -81,15 +85,18 @@ def get_messages(playlist_name, question):
         {"role": "assistant", "content": "answer = \"Your question was unable to be answered because it is not related to the playlist.\""},
         {"role": "user", "content": textwrap.dedent("""
             Use only data available through the Spotify API. For the playlist called couch.: 
-            What is the name and link of the most popular track?
+            What is the least popular track?
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
             playlist = sp.playlist(playlist_id)
-            most_popular_track = max(playlist['tracks']['items'], key=lambda x: x['track']['popularity'])['track']
-            track_name = most_popular_track['name']
-            track_link = most_popular_track['external_urls']['spotify']
-            answer = f"The most popular track in the <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is <a href='{track_link}' target='_blank'>{track_name}</a>."
+            least_popular_track = min(playlist['tracks']['items'], key=lambda x: x['track']['popularity'])['track']
+            if 'name' in least_popular_track:
+                track_name = least_popular_track['name']
+                track_link = least_popular_track['external_urls']['spotify']
+                answer = f"The least popular song in the <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is <a href='{track_link}' target='_blank'>{track_name}</a>."
+            else:
+                answer = "The least popular song in the playlist could not be found due to missing data."
             ```
         """)},
         {"role": "user", "content": textwrap.dedent("""

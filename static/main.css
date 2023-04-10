@@ -144,6 +144,124 @@ input[type="submit"]:hover {
   background-color: #1ed760;
 }
 
+.playlist-info {
+  margin-top: 30px;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 500px;
+  width: 100%;
+  background-color: #282828;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.playlist-info-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.playlist-info-container h2 {
+  margin-bottom: 0;
+  text-align: left; /* Add this line */
+}
+
+.playlist-info-container h2 a {
+  color: green; /* Add this line */
+  text-decoration: none; /* Add this line */
+  position: relative; /* Add this line */
+}
+
+.playlist-info-container h2 a:before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: green;
+  visibility: hidden;
+  transform: scaleX(0);
+  transition: all 0.3s ease-in-out 0s;
+}
+
+.playlist-info-container h2 a:hover:before {
+  visibility: visible;
+  transform: scaleX(1);
+}
+
+#playlist-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+#playlist-name {
+  font-size: 24px;
+  margin: 0;
+  margin-bottom: 5px;
+  color: #1ed760;
+  text-decoration: none;
+  position: relative;
+}
+
+#playlist-name::before {
+  display: none;
+}
+
+#playlist-name:hover {
+  text-decoration: none;
+}
+
+#playlist-name:hover::before {
+  transform: scaleX(1);
+}
+
+#playlist-description {
+  font-size: 16px;
+  margin: 0;
+  margin-top: 20px;
+}
+
+.playlist-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+#author-name {
+  color: #b3b3b3;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+#author-name:hover {
+  color: #fff;
+}
+
+#author-name::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  bottom: 0;
+  left: 0;
+  background-color: #b3b3b3;
+  visibility: hidden;
+  transform: scaleX(0);
+  transition: all 0.3s ease-in-out;
+}
+
+#author-name:hover::before {
+  visibility: visible;
+  transform: scaleX(1);
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
