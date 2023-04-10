@@ -22,18 +22,18 @@ openai_model = os.getenv("OPENAI_MODEL")
 def index():
     result = playlist_name = gpt_response = gpt_comments = playlist_id = None
     if request.method == "POST":
-        form_type = request.form["form_type"]
-        playlist_name = request.form["playlist_name"]
-        playlist_id = request.form["playlist_id"]
+        data = request.get_json()
+        form_type = data["form_type"]
+        playlist_name = data["playlist_name"]
         if form_type == "playlist":
-            question = request.form["question"]
+            question = data["question"]
             response = openai.ChatCompletion.create(
                 model=openai_model,
                 messages=get_messages(playlist_name, question),
             )
             gpt_response = response.choices[0]["message"]["content"]
         elif form_type == "code":
-            gpt_response = request.form["gpt_response"]
+            gpt_response = data["gpt_response"]
             gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
             result = execute_gpt_code(playlist_name, gpt_code, gpt_comments)
         return jsonify(result=result, playlist_name=playlist_name, gpt_response=gpt_response, playlist_id=playlist_id)
@@ -52,6 +52,17 @@ def get_playlists():
             break
         offset += 50
     return jsonify(playlists)
+
+@app.route("/search-playlist/<string:playlist_name>", methods=("GET",))
+def search_playlist(playlist_name):
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
+    results = sp.search(q=playlist_name, type="playlist")
+    if not results["playlists"]["items"]:
+        return jsonify({})
+    playlist_id = results["playlists"]["items"][0]["id"]
+    playlist = sp.playlist(playlist_id)
+    return jsonify(playlist)
+
 
 @app.route("/playlist-info/<string:playlist_id>", methods=("GET",))
 def get_playlist_info(playlist_id):
@@ -186,7 +197,6 @@ def execute_gpt_code(playlist_name, code, comments=""):
     
     playlist_id = results["playlists"]["items"][0]["id"]
     playlist = sp.playlist(playlist_id)
-    
     namespace = {"playlist_id": playlist_id, "playlist": playlist, "sp": sp, "answer": "Your question was unable to be answered."}
     
     try:

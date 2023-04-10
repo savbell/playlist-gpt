@@ -59,10 +59,13 @@ function updateUI(data) {
   updateToggleButtonText();
 }
 
-async function sendFormData(url, formData) {
+async function sendFormData(url, data) {
   const response = await fetch(url, {
     method: "POST",
-    body: formData,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
   });
   return await response.json();
 }
@@ -72,15 +75,30 @@ async function submitForm(event) {
   showLoadingIndicator();
 
   document.querySelector(".result").style.display = "none";
-  if (event.target.id === "playlist-form") {
-      document.querySelector(".code").style.display = "none";
-  } else if (event.target.id === "code-form") {
-      document.querySelector(".code").style.display = "none";
+  document.querySelector(".code").style.display = "none";
+
+  const formType = event.target.id.slice(0, event.target.id.indexOf("-form"));
+
+  let playlist_name = document.querySelector("#playlist-input").value;
+
+  // Check if the playlist is one of the user's playlists or a new search
+  const isUserPlaylist = playlists.some((playlist) => playlist.id === playlist_name);
+  if (!isUserPlaylist && formType === "playlist") {
+    const searchResponse = await fetch(`/search-playlist/${encodeURIComponent(playlist_name)}`);
+    const searchResult = await searchResponse.json();
+    if (searchResult && searchResult.id) {
+      playlist_name = searchResult.id;
+      updatePlaylistUI(searchResult);
+    }
   }
 
-  const formData = new FormData(event.target);
-  const playlistId = document.querySelector('#playlist-input').value;
-  formData.append('playlist_id', playlistId);
+  const formData = {
+    form_type: formType,
+    playlist_name: playlist_name,
+    question: document.querySelector('input[name="question"]').value,
+    gpt_response: formType === "code" ? document.getElementById("generated-response").textContent : "",
+  };
+
   const result = await sendFormData("/", formData);
 
   hideLoadingIndicator();

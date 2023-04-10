@@ -144,11 +144,24 @@ input[type="submit"]:hover, .button:hover {
   background-color: #1ed760;
 }
 
+#toggle-code-button {
+  background-color: #282828;
+  border: 1px solid #333;
+  color: #fff;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+#toggle-code-button:hover {
+  background-color: #333;
+  color: #1ed760;
+}
+
+
 .playlist-info {
   margin-top: 30px;
   margin-left: auto;
   margin-right: auto;
-  max-width: 500px;
+  max-width: 600px;
   width: 100%;
   background-color: #282828;
   border: 1px solid #333;

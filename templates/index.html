@@ -21,8 +21,6 @@
     <h3>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h3>
 
     <form action="/" method="post" role="search" id="playlist-form">
-        <input type="hidden" name="form_type" value="playlist" />
-
         <label for="playlist-input">Your playlist:</label>
         <div class="input-wrapper">
             <div id="playlist-autocomplete-container"></div>
@@ -62,7 +60,6 @@
         <h2>Generated Response:</h2>
         <pre><code id="generated-response"></code></pre>
         <form action="/" method="post" role="search" id="code-form">
-            <input type="hidden" id="hidden-code-form-type" name="form_type" value="code" />
             <input type="hidden" id="hidden-playlist-name" name="playlist_name" value="" />           
             <input type="hidden" id="hidden-gpt-response" name="gpt_response" value="" />
             <input type="submit" value="Looks good – run code!" title="Run generated code" />
