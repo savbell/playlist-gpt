@@ -8,6 +8,9 @@
     />
     <link rel="stylesheet" href="{{ url_for("static", filename="main.css") }}" />
     <script src="{{ url_for("static", filename="main.js") }}"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/accessible-autocomplete@2.0.3/dist/accessible-autocomplete.min.css">
+    <script src="https://unpkg.com/accessible-autocomplete@2.0.3"></script>
 </head>
 
 <body>
@@ -18,13 +21,11 @@
     <h3>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h3>
 
     <form action="/" method="post" role="search" id="playlist-form">
-        <input type="hidden" name="form_type" value="playlist">
+        <input type="hidden" name="form_type" value="playlist" />
 
         <label for="playlist-input">Your playlist:</label>
         <div class="input-wrapper">
-            <input type="text" id="playlist-input" name="playlist_name" placeholder="Enter your playlist name exactly." 
-                required autocomplete="off" aria-autocomplete="list" aria-controls="playlist-suggestions" />
-            <div id="playlist-suggestions" class="suggestions" role="listbox"></div>
+            <div id="playlist-autocomplete-container"></div>
         </div>
 
         <label for="question">What you want to know about it:</label>
@@ -44,14 +45,14 @@
     </div>
     {% endif %}
 
-    {% if gpt_code %}
+    {% if gpt_response %}
     <div class="code">
-        <h2>Generated Code:</h2>
-        <pre><code>{{ gpt_code }}</code></pre>
+        <h2>Generated Response:</h2>
+        <pre><code>{{ gpt_response }}</code></pre>
         <form action="/" method="post" role="search" id="code-form">
-            <input type="hidden" name="form_type" value="code">
-            <input type="hidden" name="playlist_name" value="{{ playlist_name }}">
-            <input type="hidden" name="gpt_code" value="{{ gpt_code }}">
+            <input type="hidden" name="form_type" value="code" />
+            <input type="hidden" name="playlist_name" value="{{ playlist_name }}" />
+            <input type="hidden" name="gpt_response" value="{{ gpt_response }}" />
             <input type="submit" value="Looks good – run code!" title="Run generated code" />
         </form>
     </div>

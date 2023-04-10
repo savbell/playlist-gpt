@@ -20,7 +20,7 @@ openai_model = os.getenv("OPENAI_MODEL")
 
 @app.route("/", methods=("GET", "POST"))
 def index():
-    result = playlist_name = gpt_code = None
+    result = playlist_name = gpt_response = gpt_comments = None
     if request.method == "POST":
         form_type = request.form["form_type"]
         playlist_name = request.form["playlist_name"]
@@ -30,14 +30,15 @@ def index():
                 model=openai_model,
                 messages=get_messages(playlist_name, question),
             )
-            gpt_code = response.choices[0]["message"]["content"]
+            gpt_response = response.choices[0]["message"]["content"]
         elif form_type == "code":
-            gpt_code = request.form["gpt_code"]
-            print(gpt_code)
-            print(extract_code(gpt_code))
-            result = execute_gpt_code(playlist_name, extract_code(gpt_code))
-        return render_template("index.html", result=result, playlist_name=playlist_name, gpt_code=gpt_code)
+            gpt_response = request.form["gpt_response"]
+            gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
+            result = execute_gpt_code(playlist_name, gpt_code, gpt_comments)
+        return render_template("index.html", result=result, playlist_name=playlist_name, gpt_response=gpt_response)
+
     return render_template("index.html")
+
 
 @app.route("/playlists", methods=("GET",))
 def get_playlists():
@@ -62,9 +63,11 @@ def get_messages(playlist_name, question):
         # understand not to respond to non-Spotify requests.
         {"role": "system", "content": textwrap.dedent("""
             You only respond with the Python code required to answer a question about a Spotify playlist using the Spotify API. 
-            Assume we already have the playlist ID as playlist_id. Do not include anything but the code. Account for the 
-            possibility of some fields being empty. If the question cannot be answered with data from the Spotify API, respond 
-            with `answer = \"Your question was unable to be answered.\"`
+            Assume we already have the playlist ID as playlist_id, and the spotipy.Spotify instance as sp. Do not include anything 
+            but the code. Account for the possibility of some fields being empty. If the question cannot be answered with data from 
+            the Spotify API, respond with `answer = \"Your question was unable to be answered.\"` Make sure to check for the presence 
+            of required keys in the fetched data before using them. Use the appropriate methods and attributes from the Spotipy library 
+            to interact with the Spotify API.
         """)},
         {"role": "user", "content": textwrap.dedent("""
             Use only data available through the Spotify API. For the playlist called escalation.: 
@@ -78,13 +81,15 @@ def get_messages(playlist_name, question):
         {"role": "assistant", "content": "answer = \"Your question was unable to be answered because it is not related to the playlist.\""},
         {"role": "user", "content": textwrap.dedent("""
             Use only data available through the Spotify API. For the playlist called couch.: 
-            What is the name of the most popular track?
+            What is the name and link of the most popular track?
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
             playlist = sp.playlist(playlist_id)
-            most_popular_track = max(playlist['tracks']['items'], key=lambda x: x['track']['popularity'])['track']['name']
-            answer = f"The most popular track in the <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is {most_popular_track}."
+            most_popular_track = max(playlist['tracks']['items'], key=lambda x: x['track']['popularity'])['track']
+            track_name = most_popular_track['name']
+            track_link = most_popular_track['external_urls']['spotify']
+            answer = f"The most popular track in the <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is <a href='{track_link}' target='_blank'>{track_name}</a>."
             ```
         """)},
         {"role": "user", "content": textwrap.dedent("""
@@ -113,12 +118,18 @@ def get_messages(playlist_name, question):
     return messages
 
 
-def extract_code(response):
+def extract_code_and_comments(response):
     code = re.search(r"```(.*?)```", response, re.MULTILINE | re.DOTALL)
-    return code.group(1).replace("python", "") if code else response.replace("python", "")
+    if code:
+        comments = response.replace(code.group(0), "").strip()
+        code = code.group(1).replace("python", "")
+    else:
+        comments = ""
+        code = response.replace("python", "")
+    return code, comments
 
 
-def execute_gpt_code(playlist_name, code):
+def execute_gpt_code(playlist_name, code, comments=""):
     try:
         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private"))
     except Exception as e:
@@ -140,21 +151,10 @@ def execute_gpt_code(playlist_name, code):
         traceback.print_exc()
         return "There was an error executing the code generated by GPT: {}\n\n{}".format(e, traceback.format_exc())
     
-    print("Answer: " + namespace["answer"])
-    return namespace["answer"]
-
-
-# Uncomment to test generated code
-"""
-def testing(playlist_name):
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id,client_secret,redirect_uri,scope="playlist-read-private"))
-    results = sp.search(q=playlist_name, type="playlist")
-    playlist_id = results["playlists"]["items"][0]["id"]
-    playlist = sp.playlist(playlist_id)
+    if comments:
+        answer = f"{namespace['answer']}<br><br><strong>Comments:</strong><br>{comments}"
+    else:
+        answer = namespace['answer']
     
-    # Add generated code here to test
-    
-    print(answer)
-
-testing("couch.")
-"""
+    print("Answer: " + answer)
+    return answer

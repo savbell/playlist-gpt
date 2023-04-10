@@ -75,9 +75,10 @@ input[type="text"]::placeholder {
 .input-wrapper {
   position: relative;
   width: 300px;
+  max-width: 100%;
 }
 
-#playlist-input {
+#playlist-input, #question-input {
   width: 100%;
   padding: 6px 12px;
   font-size: 14px;
@@ -90,21 +91,10 @@ input[type="text"]::placeholder {
   box-sizing: border-box;
 }
 
-#question-input {
-  width: 100%;
-  padding: 6px 12px;
-  font-size: 14px;
-  line-height: 1.42857143;
-  color: #fff;
-  background-color: #282828;
-  background-image: none;
-  border: 1px solid #333;
-  border-radius: 4px;
-  box-sizing: border-box;
-}
-
-#playlist-suggestions {
+.custom-autocomplete__menu {
   position: absolute;
+  top: 100%;
+  left: 0;
   background-color: #282828;
   border: 1px solid #333;
   border-radius: 2px;
@@ -114,52 +104,26 @@ input[type="text"]::placeholder {
   width: calc(100% - 2px);
   z-index: 1;
   box-sizing: border-box;
-  display: none;
-  top: 100%;
 }
 
-.playlist-suggestion {
+.custom-autocomplete__menu--hidden {
+  display: none;
+}
+
+.custom-autocomplete__option {
   padding: 6px 12px;
   font-size: 14px;
   color: #fff;
   cursor: pointer;
 }
 
-.playlist-suggestion:hover {
+.custom-autocomplete__option:hover {
   background-color: #1db954;
   color: #fff;
 }
 
-#playlist-suggestions.show {
-  display: block;
-}
-
-#playlist-suggestions ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-#playlist-suggestions li {
-  padding: 10px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-
-#playlist-suggestions li:hover {
-  background-color: #333;
-  cursor: pointer;
-}
-
-#playlist-suggestions li:hover a {
-  color: #1db954;
-}
-
-#playlist-suggestions li[role="option"] {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.custom-autocomplete__option[aria-disabled="true"] {
+  display: none !important;
 }
 
 input[type="submit"] {

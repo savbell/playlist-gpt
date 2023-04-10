@@ -9,63 +9,6 @@ function filterPlaylists(input) {
   return playlists.filter((playlist) => playlist.name.toLowerCase().startsWith(input.toLowerCase()));
 }
 
-function showSuggestions(filteredPlaylists) {
-  const suggestionsContainer = document.getElementById("playlist-suggestions");
-  suggestionsContainer.innerHTML = "";
-  
-  if (filteredPlaylists.length > 0) {
-    suggestionsContainer.style.display = "block";
-  } else {
-    suggestionsContainer.style.display = "none";
-  }
-
-  filteredPlaylists.forEach((playlist) => {
-    const suggestion = document.createElement("div");
-    suggestion.textContent = playlist.name;
-    suggestion.classList.add("playlist-suggestion");
-    suggestion.setAttribute("role", "option");
-    suggestionsContainer.appendChild(suggestion);
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const playlistInput = document.getElementById("playlist-input");
-  
-  playlistInput.addEventListener("input", () => {
-    const input = playlistInput.value;
-    if (input) {
-      const filteredPlaylists = filterPlaylists(input);
-      showSuggestions(filteredPlaylists);
-    } else {
-      showSuggestions([]);
-    }
-  });
-
-  playlistInput.addEventListener("focus", () => {
-    const input = playlistInput.value;
-    if (input) {
-      const filteredPlaylists = filterPlaylists(input);
-      showSuggestions(filteredPlaylists);
-    }
-  });
-
-  playlistInput.addEventListener("blur", () => {
-    setTimeout(() => {
-      showSuggestions([]);
-    }, 200);
-  });
-
-  const suggestionsContainer = document.getElementById("playlist-suggestions");
-  suggestionsContainer.addEventListener("click", (event) => {
-    if (event.target.getAttribute("role") === "option") {
-      playlistInput.value = event.target.textContent;
-      showSuggestions([]);
-    }
-  });
-
-  fetchPlaylists();
-});
-
 function fillQuestion(question) {
     document.querySelector('input[name="question"]').value = question;
   }
@@ -84,7 +27,39 @@ function submitForm() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded", () => {
+  const playlistInputContainer = document.getElementById('playlist-autocomplete-container');
+
+  accessibleAutocomplete({
+    element: playlistInputContainer,
+    id: 'playlist-input',
+    source: (query, populateResults) => {
+      if (query.length > 0) {
+        const filteredPlaylists = filterPlaylists(query);
+        populateResults(filteredPlaylists.map((playlist) => playlist.name));
+      } else {
+        populateResults();
+      }
+    },    
+    placeholder: 'Enter your playlist name exactly.',
+    onConfirm: (value) => {
+      const selectedPlaylist = playlists.find((playlist) => playlist.name === value);
+      if (selectedPlaylist) {
+        playlistInput.value = selectedPlaylist.id;
+      } else {
+        playlistInput.value = "";
+      }
+    },
+    name: 'playlist_name',
+    required: true,
+    showNoOptionsFound: false,
+    displayMenu: 'overlay',
+    cssNamespace: 'custom-autocomplete',
+  });
+
+  const playlistInput = document.getElementById('playlist-input');
+  playlistInput.classList.add('playlist-search-input');
+
   submitForm();
   fetchPlaylists();
 });
