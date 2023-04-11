@@ -4,10 +4,10 @@
     <title>PlaylistGPT</title>
     <link
         rel="shortcut icon"
-        href="{{ url_for("static", filename="playlistgpt-icon.png") }}"
+        href="{{ url_for("static", filename="images/playlistgpt-icon.png") }}"
     />
-    <link rel="stylesheet" href="{{ url_for("static", filename="main.css") }}" />
-    <script src="{{ url_for("static", filename="main.js") }}"></script>
+    <link rel="stylesheet" href="{{ url_for("static", filename="css/main.css") }}" />
+    <script src="{{ url_for("static", filename="js/main.js") }}"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/accessible-autocomplete@2.0.3/dist/accessible-autocomplete.min.css">
     <script src="https://unpkg.com/accessible-autocomplete@2.0.3"></script>
@@ -15,7 +15,7 @@
 
 <body>
     <header class="header">
-        <img src="{{ url_for("static", filename="playlistgpt-icon.png") }}" class="icon" alt="PlaylistGPT Icon" />
+        <img src="{{ url_for("static", filename="images/playlistgpt-icon.png") }}" class="icon" alt="PlaylistGPT Icon" />
         <h1>PlaylistGPT</h1>
     </header>
     <h3>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h3>
@@ -83,13 +83,13 @@
         <p>Created by Sav Bell</p>
         <div class="social-links">
             <a href="https://github.com/savbell/playlist-gpt" target="_blank" rel="noopener noreferrer" aria-label="PlaylistGPT's GitHub Page">
-                <img src="{{ url_for("static", filename="github-icon.png") }}" alt="GitHub Icon" class="social-icon" />
+                <img src="{{ url_for("static", filename="images/github-icon.png") }}" alt="GitHub Icon" class="social-icon" />
             </a>
             <a href="https://open.spotify.com/user/sav-bell" target="_blank" rel="noopener noreferrer" aria-label="Sav Bell's Spotify Profile">
-                <img src="{{ url_for("static", filename="spotify-icon.png") }}" alt="Spotify Icon" class="social-icon" />
+                <img src="{{ url_for("static", filename="images/spotify-icon.png") }}" alt="Spotify Icon" class="social-icon" />
             </a>
             <a href="https://www.linkedin.com/in/savbell/" target="_blank" rel="noopener noreferrer" aria-label="Sav Bell's LinkedIn Profile">
-                <img src="{{ url_for("static", filename="linkedin-icon.png") }}" alt="LinkedIn Icon" class="social-icon" />
+                <img src="{{ url_for("static", filename="images/linkedin-icon.png") }}" alt="LinkedIn Icon" class="social-icon" />
             </a>
         </div>
     </footer>

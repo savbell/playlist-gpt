@@ -34,7 +34,6 @@ function updatePlaylistUI(playlistInfo) {
 async function displayPlaylistInfo(playlistId) {
   const response = await fetch(`/playlist-info/${playlistId}`);
   const playlistInfo = await response.json();
-
   updatePlaylistUI(playlistInfo);
 }
 

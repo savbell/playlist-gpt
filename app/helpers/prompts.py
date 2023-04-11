@@ -1,77 +1,6 @@
-# Standard library imports
-import os
-import re
-import textwrap
-import traceback
+from app import re, textwrap
 
-# Third-party imports
-from dotenv import load_dotenv
-from flask import Flask, jsonify, render_template, request
-import openai
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
-
-app = Flask(__name__)
-
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-openai_model = os.getenv("OPENAI_MODEL")
-
-
-@app.route("/", methods=("GET", "POST"))
-def index():
-    result = playlist_name = gpt_response = gpt_comments = playlist_id = None
-    if request.method == "POST":
-        data = request.get_json()
-        form_type = data["form_type"]
-        playlist_name = data["playlist_name"]
-        if form_type == "playlist":
-            question = data["question"]
-            response = openai.ChatCompletion.create(
-                model=openai_model,
-                messages=get_messages(playlist_name, question),
-            )
-            gpt_response = response.choices[0]["message"]["content"]
-        elif form_type == "code":
-            gpt_response = data["gpt_response"]
-            gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
-            result = execute_gpt_code(playlist_name, gpt_code, gpt_comments)
-        return jsonify(result=result, playlist_name=playlist_name, gpt_response=gpt_response, playlist_id=playlist_id)
-    return render_template("index.html")
-
-
-@app.route("/playlists", methods=("GET",))
-def get_playlists():
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
-    playlists = []
-    offset = 0
-    while True:
-        response = sp.current_user_playlists(limit=50, offset=offset)
-        playlists += [{"name": playlist["name"], "id": playlist["id"]} for playlist in response["items"]]
-        if response["next"] is None:
-            break
-        offset += 50
-    return jsonify(playlists)
-
-@app.route("/search-playlist/<string:playlist_name>", methods=("GET",))
-def search_playlist(playlist_name):
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
-    results = sp.search(q=playlist_name, type="playlist")
-    if not results["playlists"]["items"]:
-        return jsonify({})
-    playlist_id = results["playlists"]["items"][0]["id"]
-    playlist = sp.playlist(playlist_id)
-    return jsonify(playlist)
-
-
-@app.route("/playlist-info/<string:playlist_id>", methods=("GET",))
-def get_playlist_info(playlist_id):
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
-    playlist = sp.playlist(playlist_id)
-    return jsonify(playlist)
-
-
-def generate_prompt(playlist_name, question):
+def generate_playlist_prompt(playlist_name, question):
     return """Use only data available through the Spotify API. For the playlist called {}: {}
         """.format(
                 playlist_name,
@@ -79,7 +8,7 @@ def generate_prompt(playlist_name, question):
             )
 
 
-def get_messages(playlist_name, question):
+def get_playlist_messages(playlist_name, question):
     messages = [
         # gpt-3.5-turbo-0301 does not always pay strong attention to system messages.
         # As a workaround for now, I've added a few user messages to help the model 
@@ -191,22 +120,13 @@ def get_messages(playlist_name, question):
                 answer = f"The average BPM in <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is {avg_tempo}."
             ```
         """)},
-        {"role": "user", "content": generate_prompt(playlist_name, question)},
+        {"role": "user", "content": generate_playlist_prompt(playlist_name, question)},
     ]
     return messages
 
 
-def extract_code_and_comments(response):
-    code = re.search(r"```(.*?)```", response, re.MULTILINE | re.DOTALL)
-    if code:
-        comments = response.replace(code.group(0), "").strip()
-        code = code.group(1).replace("python", "")
-    else:
-        comments = ""
-        code = response.replace("python", "")
-
-    # The model keeps using these functions without defining them, so I'm manually adding them since they're quite useful.
-    # TODO: Figure out how to get the model to listen to me when I ask it to define its helper functions!!
+def add_helper_functions(code):
+    # The model kept using these functions without defining them, so I'm manually adding them since they're quite useful.
     if "get_all_playlist_tracks" in code:
         code = textwrap.dedent("""
             def get_all_playlist_tracks(playlist_id, sp):
@@ -237,34 +157,15 @@ def extract_code_and_comments(response):
                     audio_features_dict.update({f['id']: f for f in audio_features if f})
                 return audio_features_dict
             """) + "\n\n" + code
-    return code, comments
+    return code
 
 
-def execute_gpt_code(playlist_name, code, comments=""):
-    try:
-        sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
-    except Exception as e:
-        return "There was an error connecting to your Spotify account: {}".format(e)
-    
-    results = sp.search(q=playlist_name, type="playlist")
-    if not results["playlists"]["items"]:
-        return "No playlists with that name could be found."
-    # TODO: Add logic to handle multiple playlists with the same name. Currently we just take the first result.
-    
-    playlist_id = results["playlists"]["items"][0]["id"]
-    playlist = sp.playlist(playlist_id)
-    namespace = {"playlist_id": playlist_id, "playlist": playlist, "sp": sp, "answer": "Your question was unable to be answered."}
-    
-    try:
-        exec(code, namespace)
-    except Exception as e:
-        traceback.print_exc()
-        return "There was an error executing the code generated by GPT: {}\n\n{}".format(e, traceback.format_exc())
-    
-    if comments:
-        answer = f"{namespace['answer']}<br><br><strong>Comments:</strong><br>{comments}"
+def extract_code_and_comments(response):
+    code = re.search(r"```(.*?)```", response, re.MULTILINE | re.DOTALL)
+    if code:
+        comments = response.replace(code.group(0), "").strip()
+        code = code.group(1).replace("python", "")
     else:
-        answer = namespace['answer']
-    
-    print("Answer: " + answer)
-    return answer
+        comments = ""
+        code = response.replace("python", "")
+    return add_helper_functions(code), comments
