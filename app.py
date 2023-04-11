@@ -104,6 +104,25 @@ def get_messages(playlist_name, question):
                     offset += limit
                 return tracks
             ```
+            To get all artists in a playlist, use the following function:
+            ```
+            def get_artist_info_batched(artist_ids, sp, batch_size=50):
+                artist_info = []
+                for i in range(0, len(artist_ids := list(artist_ids)), batch_size):
+                    artist_info.extend(sp.artists(artist_ids[i:i + batch_size])['artists'])
+                return artist_info
+            ```
+            To get audio features for a list of tracks, use the following function:
+            ```
+            def get_audio_features_for_tracks(tracks, sp):
+                track_ids = [track['id'] for track in tracks]
+                audio_features_dict = {}
+                for i in range(0, len(track_ids), 100):
+                    batch = track_ids[i:i+100]
+                    audio_features = sp.audio_features(batch)
+                    audio_features_dict.update({f['id']: f for f in audio_features if f})
+                return audio_features_dict
+            ```
         """)},
         {"role": "user", "content": textwrap.dedent("""
             Use only data available through the Spotify API. For the playlist called escalation.: 
@@ -137,12 +156,6 @@ def get_messages(playlist_name, question):
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
-            def get_artist_info_batched(artist_ids, sp, batch_size=50):
-                artist_info = []
-                for i in range(0, len(artist_ids := list(artist_ids)), batch_size):
-                    artist_info.extend(sp.artists(artist_ids[i:i + batch_size])['artists'])
-                return artist_info
-
             all_tracks = get_all_playlist_tracks(playlist_id, sp)
             artists = {artist['track']['artists'][0]['id'] for artist in all_tracks}
 
@@ -159,6 +172,25 @@ def get_messages(playlist_name, question):
                 answer = f"The top genres in <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist are {', '.join([genre[0] for genre in top_genres])}."
             ```
         """)},
+        {"role": "user", "content": textwrap.dedent("""
+            Use only data available through the Spotify API. For the playlist called hacker girl.: 
+            What's the average BPM?
+        """)},
+        {"role": "assistant", "content": textwrap.dedent("""
+            ```
+            all_tracks = get_all_playlist_tracks(playlist_id, sp)
+            track_objs = [track['track'] for track in all_tracks]
+            audio_features_dict = get_audio_features_for_tracks(track_objs, sp)
+
+            tempos = [audio_features_dict[track['id']]['tempo'] for track in track_objs if audio_features_dict.get(track['id'])]
+
+            if not tempos:
+                answer = "The average BPM could not be found because there are no tracks with tempo information in the playlist."
+            else:
+                avg_tempo = round(sum(tempos) / len(tempos))
+                answer = f"The average BPM in <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is {avg_tempo}."
+            ```
+        """)},
         {"role": "user", "content": generate_prompt(playlist_name, question)},
     ]
     return messages
@@ -172,6 +204,39 @@ def extract_code_and_comments(response):
     else:
         comments = ""
         code = response.replace("python", "")
+
+    # The model keeps using these functions without defining them, so I'm manually adding them since they're quite useful.
+    # TODO: Figure out how to get the model to listen to me when I ask it to define its helper functions!!
+    if "get_all_playlist_tracks" in code:
+        code = textwrap.dedent("""
+            def get_all_playlist_tracks(playlist_id, sp):
+                tracks, offset, limit = [], 0, 100
+                while True:
+                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
+                    tracks.extend(batch['items'])
+                    if len(batch['items']) < limit: break
+                    offset += limit
+                return tracks
+            """) + "\n\n" + code
+    if "get_artist_info_batched" in code:
+        code = textwrap.dedent("""
+            def get_artist_info_batched(artist_ids, sp, batch_size=50):
+                artist_info = []
+                for i in range(0, len(artist_ids := list(artist_ids)), batch_size):
+                    artist_info.extend(sp.artists(artist_ids[i:i + batch_size])['artists'])
+                return artist_info
+            """) + "\n\n" + code
+    if "get_audio_features_for_tracks" in code:
+        code = textwrap.dedent("""
+            def get_audio_features_for_tracks(tracks, sp):
+                track_ids = [track['id'] for track in tracks]
+                audio_features_dict = {}
+                for i in range(0, len(track_ids), 100):
+                    batch = track_ids[i:i+100]
+                    audio_features = sp.audio_features(batch)
+                    audio_features_dict.update({f['id']: f for f in audio_features if f})
+                return audio_features_dict
+            """) + "\n\n" + code
     return code, comments
 
 
@@ -189,20 +254,6 @@ def execute_gpt_code(playlist_name, code, comments=""):
     playlist_id = results["playlists"]["items"][0]["id"]
     playlist = sp.playlist(playlist_id)
     namespace = {"playlist_id": playlist_id, "playlist": playlist, "sp": sp, "answer": "Your question was unable to be answered."}
-    
-    # The model keeps using this function without defining it, so I'm manually adding it here since it's quite useful.
-    # TODO: Figure out how to get the model to listen to me when I ask it to define its helper functions!!
-    if "get_all_playlist_tracks" in code:
-        code = textwrap.dedent("""
-            def get_all_playlist_tracks(playlist_id, sp):
-                tracks, offset, limit = [], 0, 100
-                while True:
-                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
-                    tracks.extend(batch['items'])
-                    if len(batch['items']) < limit: break
-                    offset += limit
-                return tracks
-        """) + "\n\n" + code
     
     try:
         exec(code, namespace)
