@@ -86,11 +86,24 @@ def get_messages(playlist_name, question):
         # understand not to respond to non-Spotify requests.
         {"role": "system", "content": textwrap.dedent("""
             You only respond with the Python code required to answer a question about a Spotify playlist using the Spotify API. 
-            Assume we already have the playlist ID as playlist_id, and the spotipy.Spotify instance as sp. Do not include anything 
-            but the code. Account for the possibility of some fields being empty. If the question cannot be answered with data from 
-            the Spotify API, respond with `answer = \"Your question was unable to be answered.\"` Make sure to check for the presence 
-            of required keys in the fetched data before using them. Use the appropriate methods and attributes from the Spotipy library 
-            to interact with the Spotify API.
+            Assume we already have the playlist ID as playlist_id, spotipy.Spotify instance as sp, and playlist as playlist. 
+            Do not include anything but the code. Account for the possibility of some fields being empty. If the question cannot 
+            be answered with data from the Spotify API, respond with `answer = \"Your question was unable to be answered.\"` 
+            Make sure to check for the presence of required keys in the fetched data before using them. Use the appropriate 
+            methods and attributes from the Spotipy library to interact with the Spotify API. Define any helper functions.
+        """)},
+        {"role": "user", "content": textwrap.dedent("""
+            To get all tracks in a playlist, use the following function:
+            ```
+            def get_all_playlist_tracks(playlist_id, sp):
+                tracks, offset, limit = [], 0, 100
+                while True:
+                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
+                    tracks.extend(batch['items'])
+                    if len(batch['items']) < limit: break
+                    offset += limit
+                return tracks
+            ```
         """)},
         {"role": "user", "content": textwrap.dedent("""
             Use only data available through the Spotify API. For the playlist called escalation.: 
@@ -108,19 +121,6 @@ def get_messages(playlist_name, question):
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
-            def get_all_playlist_tracks(playlist_id, sp):
-                tracks = []
-                offset = 0
-                limit = 100
-                while True:
-                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
-                    tracks.extend(batch['items'])
-                    if len(batch['items']) < limit:
-                        break
-                    offset += limit
-                return tracks
-
-            playlist = sp.playlist(playlist_id)
             all_tracks = get_all_playlist_tracks(playlist_id, sp)
             least_popular_track = min(all_tracks, key=lambda x: x['track']['popularity'])['track']
             if 'name' in least_popular_track:
@@ -137,22 +137,13 @@ def get_messages(playlist_name, question):
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
-            def get_all_playlist_tracks(playlist_id, sp):
-                tracks, offset, limit = [], 0, 100
-                while True:
-                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
-                    tracks.extend(batch['items'])
-                    if len(batch['items']) < limit: break
-                    offset += limit
-                return tracks
-
             def get_artist_info_batched(artist_ids, sp, batch_size=50):
                 artist_info = []
                 for i in range(0, len(artist_ids := list(artist_ids)), batch_size):
                     artist_info.extend(sp.artists(artist_ids[i:i + batch_size])['artists'])
                 return artist_info
 
-            playlist, all_tracks = sp.playlist(playlist_id), get_all_playlist_tracks(playlist_id, sp)
+            all_tracks = get_all_playlist_tracks(playlist_id, sp)
             artists = {artist['track']['artists'][0]['id'] for artist in all_tracks}
 
             if not artists:
@@ -198,6 +189,20 @@ def execute_gpt_code(playlist_name, code, comments=""):
     playlist_id = results["playlists"]["items"][0]["id"]
     playlist = sp.playlist(playlist_id)
     namespace = {"playlist_id": playlist_id, "playlist": playlist, "sp": sp, "answer": "Your question was unable to be answered."}
+    
+    # The model keeps using this function without defining it, so I'm manually adding it here since it's quite useful.
+    # TODO: Figure out how to get the model to listen to me when I ask it to define its helper functions!!
+    if "get_all_playlist_tracks" in code:
+        code = textwrap.dedent("""
+            def get_all_playlist_tracks(playlist_id, sp):
+                tracks, offset, limit = [], 0, 100
+                while True:
+                    batch = sp.playlist_tracks(playlist_id, offset=offset, limit=limit)
+                    tracks.extend(batch['items'])
+                    if len(batch['items']) < limit: break
+                    offset += limit
+                return tracks
+        """) + "\n\n" + code
     
     try:
         exec(code, namespace)
