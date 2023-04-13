@@ -1,25 +1,25 @@
 from app import re, textwrap
 
 def generate_playlist_prompt(playlist_name, question):
-    return """Use only data available through the Spotify API. For the playlist called {}: {}
-        """.format(
-                playlist_name,
-                question,
-            )
+    return f"""
+        Use only data available through the Spotify API. For the playlist called {playlist_name}: {question}
+        """
 
 
 def get_playlist_messages(playlist_name, question):
     messages = [
-        # gpt-3.5-turbo-0301 does not always pay strong attention to system messages.
-        # As a workaround for now, I've added a few user messages to help the model 
-        # understand not to respond to non-Spotify requests.
+        # Note: gpt-3.5-turbo-0301 does not always pay strong attention to system messages.
         {"role": "system", "content": textwrap.dedent("""
             You only respond with the Python code required to answer a question about a Spotify playlist using the Spotify API. 
-            Assume we already have the playlist ID as playlist_id, spotipy.Spotify instance as sp, and playlist as playlist. 
-            Do not include anything but the code. Account for the possibility of some fields being empty. If the question cannot 
-            be answered with data from the Spotify API, respond with `answer = \"Your question was unable to be answered.\"` 
-            Make sure to check for the presence of required keys in the fetched data before using them. Use the appropriate 
-            methods and attributes from the Spotipy library to interact with the Spotify API. Define any helper functions.
+            If the question cannot  be answered with data from the Spotify API, respond with `answer = \"Your question was unable to be answered.\"`. 
+        """)},
+        {"role": "user", "content": textwrap.dedent("""
+            When you provide your code to answer the question, keep the following in mind: 
+            We already have the playlist ID as playlist_id, spotipy.Spotify instance as sp, and playlist as playlist. 
+            Make sure to check for the presence of required keys in the fetched data before using them. 
+            Use the appropriate methods and attributes from the Spotipy library to interact with the Spotify API. 
+            Define any helper functions. 
+            Link any playlists, tracks, or artists in your response.
         """)},
         {"role": "user", "content": textwrap.dedent("""
             To get all tracks in a playlist, use the following function:
@@ -63,18 +63,20 @@ def get_playlist_messages(playlist_name, question):
             What's 7+7?
         """)},
         {"role": "assistant", "content": "answer = \"Your question was unable to be answered because it is not related to the playlist.\""},
-                {"role": "user", "content": textwrap.dedent("""
+        {"role": "user", "content": textwrap.dedent("""
             Use only data available through the Spotify API. For the playlist called couch.: 
-            What is the least popular track?
+            What's the least popular song?
         """)},
         {"role": "assistant", "content": textwrap.dedent("""
             ```
             all_tracks = get_all_playlist_tracks(playlist_id, sp)
             least_popular_track = min(all_tracks, key=lambda x: x['track']['popularity'])['track']
-            if 'name' in least_popular_track:
+            if 'name' in least_popular_track and 'id' in least_popular_track['artists'][0]:
+                artist_name = least_popular_track['artists'][0]['name']
                 track_name = least_popular_track['name']
+                artist_link = least_popular_track['artists'][0]['external_urls']['spotify']
                 track_link = least_popular_track['external_urls']['spotify']
-                answer = f"The least popular song in the <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is <a href='{track_link}' target='_blank'>{track_name}</a>."
+                answer = f"The least popular song in the <a href='{playlist['external_urls']['spotify']}' target='_blank'>{playlist['name']}</a> playlist is <a href='{track_link}' target='_blank'>{track_name}</a> by <a href='{artist_link}' target='_blank'>{artist_name}</a>."
             else:
                 answer = "The least popular song in the playlist could not be found due to missing data."
             ```

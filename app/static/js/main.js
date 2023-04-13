@@ -19,6 +19,12 @@ function hideLoadingIndicator() {
   loadingIndicator.style.display = 'none';
 }
 
+function decodeHtmlEntities(str) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = str;
+  return textarea.value;
+}
+
 function updatePlaylistUI(playlistInfo) {
   document.getElementById('playlist-name').innerHTML = `<a href="${playlistInfo.external_urls.spotify}" target="_blank">
     ${decodeHtmlEntities(playlistInfo.name)}</a>`;
@@ -38,12 +44,13 @@ async function displayPlaylistInfo(playlistId) {
 }
 
 function updateUI(data) {
-  const { result, playlist_name, gpt_response, playlist_id } = data;
+  const { result, playlist_name, playlist_id, gpt_response } = data;
 
   if (gpt_response) {
     document.getElementById("generated-response").textContent = gpt_response;
-    document.getElementById("hidden-playlist-name").value = playlist_name;
-    document.getElementById("hidden-gpt-response").value = gpt_response;
+    document.getElementById("code-hidden-playlist-id").value = playlist_id;
+    document.getElementById("code-hidden-playlist-name").value = playlist_name;
+    document.getElementById("code-hidden-gpt-response").value = gpt_response;
     document.querySelector(".code").style.display = "block";
   }
   if (result) {
@@ -79,14 +86,15 @@ async function submitForm(event) {
   const formType = event.target.id.slice(0, event.target.id.indexOf("-form"));
 
   let playlist_name = document.querySelector("#playlist-input").value;
+  let playlist_id = document.querySelector('input[id="playlist-hidden-playlist-id"]').value;
 
-  // Check if the playlist is one of the user's playlists or a new search
-  const isUserPlaylist = playlists.some((playlist) => playlist.id === playlist_name);
-  if (!isUserPlaylist && formType === "playlist") {
+  if (!playlist_id && formType === "playlist") {
     const searchResponse = await fetch(`/search-playlist/${encodeURIComponent(playlist_name)}`);
     const searchResult = await searchResponse.json();
     if (searchResult && searchResult.id) {
-      playlist_name = searchResult.id;
+      playlist_name = searchResult.name;
+      playlist_id = searchResult.id;
+      document.querySelector('input[id="playlist-hidden-playlist-id"]').value = playlist_id;
       updatePlaylistUI(searchResult);
     }
   }
@@ -94,6 +102,7 @@ async function submitForm(event) {
   const formData = {
     form_type: formType,
     playlist_name: playlist_name,
+    playlist_id: playlist_id,
     question: document.querySelector('input[name="question"]').value,
     gpt_response: formType === "code" ? document.getElementById("generated-response").textContent : "",
   };
@@ -101,7 +110,7 @@ async function submitForm(event) {
   const result = await sendFormData("/", formData);
 
   hideLoadingIndicator();
-  updateUI(result);
+  updateUI(result); 
 }
 
 function initializeForms() {
@@ -109,12 +118,6 @@ function initializeForms() {
   forms.forEach((form) => {
     form.addEventListener('submit', submitForm);
   });
-}
-
-function decodeHtmlEntities(str) {
-  const textarea = document.createElement('textarea');
-  textarea.innerHTML = str;
-  return textarea.value;
 }
 
 function initializePlaylistAutocomplete() {
@@ -135,7 +138,8 @@ function initializePlaylistAutocomplete() {
     onConfirm: (value) => {
       const selectedPlaylist = playlists.find((playlist) => playlist.name === value);
       if (selectedPlaylist) {
-        playlistInput.value = selectedPlaylist.id;
+        playlistInput.value = selectedPlaylist.name;
+        document.querySelector('input[id="playlist-hidden-playlist-id"]').value = selectedPlaylist.id;
         displayPlaylistInfo(selectedPlaylist.id);
       } else {
         playlistInput.value = "";

@@ -26,6 +26,8 @@
             <div id="playlist-autocomplete-container"></div>
         </div>
 
+        <input type="hidden" id="playlist-hidden-playlist-id" name="playlist_id" value="" />
+
         <label for="question">What you want to know about it:</label>
         <input type="text" name="question" id="question-input" autocomplete="off" placeholder="Enter your question." required />
 
@@ -60,22 +62,23 @@
         <h2>Generated Response:</h2>
         <pre><code id="generated-response"></code></pre>
         <form action="/" method="post" role="search" id="code-form">
-            <input type="hidden" id="hidden-playlist-name" name="playlist_name" value="" />           
-            <input type="hidden" id="hidden-gpt-response" name="gpt_response" value="" />
+            <input type="hidden" id="code-hidden-playlist-name" name="playlist_name" value="" />
+            <input type="hidden" id="code-hidden-playlist-id" name="playlist_id" value="" />
+            <input type="hidden" id="code-hidden-gpt-response" name="gpt_response" value="" />
             <input type="submit" value="Looks good – run code!" title="Run generated code" />
         </form>
     </div>
 
     <div class="sample-questions">
         <h2>Sample questions:</h2>
-        <p><a href="#" onclick="fillQuestion('What is the top genre in my playlist?'); return false;">
-            What is the top genre in my playlist?
-        </a></p>
         <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">
             What's the most popular song in my playlist?
         </a></p>
-        <p><a href="#" onclick="fillQuestion('How many songs in my playlist are from the 80s?'); return false;">
-            How many songs in my playlist are from the 80s?
+        <p><a href="#" onclick="fillQuestion('What are the three most common genres in my playlist?'); return false;">
+            What are the three most common genres in my playlist?
+        </a></p>
+        <p><a href="#" onclick="fillQuestion('How many songs in my playlist were released after March 2020?'); return false;">
+            How many songs in my playlist were released after March 2020?
         </a></p>
     </div>
     

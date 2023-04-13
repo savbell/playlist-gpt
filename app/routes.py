@@ -7,18 +7,19 @@ bp = Blueprint('routes', __name__)
 
 @bp.route("/", methods=("GET", "POST",))
 def index():
-    result = playlist_name = gpt_response = gpt_comments = playlist_id = None
+    result = playlist_name = playlist_id = gpt_response = gpt_comments = None
     if request.method == "POST":
         data = request.get_json()
         form_type = data["form_type"]
         playlist_name = data["playlist_name"]
+        playlist_id = data["playlist_id"]
         if form_type == "playlist":
             gpt_response = ask_model(get_playlist_messages(playlist_name, data["question"]))
         elif form_type == "code":
             gpt_response = data["gpt_response"]
             gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
-            result = execute_playlist_code(playlist_name, gpt_code, gpt_comments)
-        return jsonify(result=result, playlist_name=playlist_name, gpt_response=gpt_response, playlist_id=playlist_id)
+            result = execute_playlist_code(playlist_id, gpt_code, gpt_comments)
+        return jsonify(result=result, playlist_name=playlist_name, playlist_id=playlist_id, gpt_response=gpt_response)
     return render_template("index.html")
 
 

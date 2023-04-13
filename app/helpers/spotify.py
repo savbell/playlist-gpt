@@ -29,18 +29,12 @@ def get_playlist_by_id(playlist_id):
     return playlist
 
 
-def execute_playlist_code(playlist_name, code, comments=""):
+def execute_playlist_code(playlist_id, code, comments=""):
     try:
         sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope="playlist-read-private,playlist-read-collaborative"))
     except Exception as e:
         return "There was an error connecting to your Spotify account: {}".format(e)
     
-    results = sp.search(q=playlist_name, type="playlist")
-    if not results["playlists"]["items"]:
-        return "No playlists with that name could be found."
-    # TODO: Add logic to handle multiple playlists with the same name. Currently we just take the first result.
-    
-    playlist_id = results["playlists"]["items"][0]["id"]
     playlist = sp.playlist(playlist_id)
     namespace = {"playlist_id": playlist_id, "playlist": playlist, "sp": sp, "answer": "Your question was unable to be answered."}
     
