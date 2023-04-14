@@ -21,7 +21,7 @@
     <h3>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h3>
 
     <form action="/" method="post" role="search" id="playlist-form">
-        <label for="playlist-input">Search for a playlist:</label>
+        <label for="playlist-input">Search for a playlist in your library:</label>
         <div class="input-wrapper">
             <div id="playlist-autocomplete-container"></div>
         </div>
@@ -30,25 +30,24 @@
         <input type="text" name="playlist-link" class="text-input" id="playlist-link-input" autocomplete="off" placeholder="Paste Spotify playlist link here." />
         <button type="button" class="button" id="url-search-button" aria-label="Search for Spotify playlist by URL">Search by URL</button>
 
+        <div id="playlist-info" class="playlist-info" style="display: none;">
+            <div class="playlist-info-container">
+                <img id="playlist-image" src="" alt="Playlist Image" />
+                <div>
+                    <h2 id="playlist-name"></h2>
+                    <div id="playlist-author" class="playlist-author">
+                        <a id="author-name" href="" target="_blank"></a>
+                    </div>
+                    <p id="playlist-description"></p>
+                </div>
+            </div>
+        </div>
 
         <label for="question">What you want to know about it:</label>
         <input type="text" name="question" class="text-input" id="question-input" autocomplete="off" placeholder="Enter your question." required />
 
         <input type="submit" value="Find out!" title="Submit your question" />
     </form>
-
-    <div id="playlist-info" class="playlist-info" style="display: none;">
-        <div class="playlist-info-container">
-            <img id="playlist-image" src="" alt="Playlist Image" />
-            <div>
-                <h2 id="playlist-name"></h2>
-                <div id="playlist-author" class="playlist-author">
-                    <a id="author-name" href="" target="_blank"></a>
-                </div>
-                <p id="playlist-description"></p>
-            </div>
-        </div>
-    </div>
 
     <div class="loading-indicator" id="loading-indicator" style="display: none;">
         <div class="spinner"></div>
@@ -64,10 +63,14 @@
     <div class="code" style="display:none">
         <h2>Generated Response:</h2>
         <pre><code id="generated-response"></code></pre>
-        <form action="/" method="post" role="search" id="code-form">
-            <input type="submit" value="Looks good – run code!" title="Run generated code" />
-        </form>
+        <div class="code-buttons">
+            <button class="button" id="copy-code-button" aria-label="Copy generated code">Copy code</button>
+            <form action="/" method="post" role="search" id="code-form">
+                <input type="submit" value="Looks good – run code!" title="Run generated code" />
+            </form>
+        </div>
     </div>
+    
 
     <div class="sample-questions">
         <h2>Sample questions:</h2>

@@ -15,14 +15,15 @@ def index():
 
         if form_type == "playlist":
             gpt_response = ask_model(get_playlist_messages(data["playlistName"], data["question"]))
+            gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
             timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
             gpt_response_object = {
                 "timestamp": timestamp,
                 "playlistInfo": data["playlistInfo"],
                 "question": data["question"],
                 "response": gpt_response,
-                "code": None,
-                "comments": None,
+                "code": gpt_code,
+                "comments": gpt_comments,
                 "result": None,
                 "error": None,
             }
@@ -33,10 +34,7 @@ def index():
         elif form_type == "code":
             if data["gptResponses"] and len(data["gptResponses"]) > 0:
                 last_gpt_response = data["gptResponses"][-1]
-                gpt_code, gpt_comments = extract_code_and_comments(last_gpt_response["response"])
-                last_gpt_response["code"] = gpt_code
-                last_gpt_response["comments"] = gpt_comments
-                result, error = execute_playlist_code(data["playlistId"], gpt_code, gpt_comments)
+                result, error = execute_playlist_code(data["playlistId"], last_gpt_response["code"], last_gpt_response["comments"])
                 last_gpt_response["result"] = result
                 last_gpt_response["error"] = error
                 

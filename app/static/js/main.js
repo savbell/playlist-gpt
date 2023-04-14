@@ -181,6 +181,24 @@ function toggleGeneratedCode() {
 };
 
 
+async function copyToClipboard(text) {
+    try {
+        await navigator.clipboard.writeText(text);
+    } catch (err) {
+        console.error('Failed to copy text:', err);
+    }
+};
+
+
+async function handleCopyCodeButtonClick() {
+    const gptResponses = dataStore.get('gptResponses');
+    if (gptResponses && gptResponses.length > 0) {
+        const latestGptResponse = gptResponses[gptResponses.length - 1];
+        await copyToClipboard(latestGptResponse.code);
+    }
+};
+
+
 function initializeForms() {
     const forms = document.querySelectorAll('form');
     forms.forEach((form) => {
@@ -191,9 +209,11 @@ function initializeForms() {
 function initializeButtons() {
     const toggleCodeButton = document.getElementById("toggle-code-button");
     const searchButton = document.getElementById("url-search-button");
+    const copyCodeButton = document.getElementById('copy-code-button');
 
     toggleCodeButton.addEventListener("click", toggleGeneratedCode);
     searchButton.addEventListener("click", handleSearchButtonClick);
+    copyCodeButton.addEventListener("click", handleCopyCodeButtonClick);
 }
 
 
