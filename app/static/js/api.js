@@ -22,6 +22,14 @@ async function searchPlaylistName(playlistName) {
 };
 
 
+async function resolveShortUrl(shortUrl) {
+    const response = await fetch(`/resolve-short-url/${encodeURIComponent(shortUrl)}`);
+    const resolvedUrl = await response.json();
+    console.log(resolvedUrl)
+    return resolvedUrl.id;
+}
+
+
 async function sendFormData(url, data) {
     const response = await fetch(url, {
         method: "POST",
@@ -44,4 +52,4 @@ async function sendFormData(url, data) {
 };
 
 
-export { fetchUserPlaylists, fetchPlaylistInfo, searchPlaylistName, sendFormData };
+export { fetchUserPlaylists, fetchPlaylistInfo, searchPlaylistName, resolveShortUrl, sendFormData };

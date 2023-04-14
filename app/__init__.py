@@ -1,6 +1,7 @@
 # Standard library imports
 import os
 import re
+import requests
 import textwrap
 import traceback
 from datetime import datetime

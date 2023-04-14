@@ -29,6 +29,16 @@ eventSystem.subscribe('playlistId', async (playlist_id) => {
 });
 
 
+async function updatePlaylistInfo(playlistId) {
+    if (playlistId) {
+        const playlistInfo = await fetchPlaylistInfo(playlistId);
+        dataStore.set('playlistName', playlistInfo.name);
+        dataStore.set('playlistInfo', playlistInfo);
+    } else {
+        dataStore.set('playlistInfo', null);
+    }
+}
+
 async function onPlaylistNameConfirm(value) {
     if (value) {
         const selectedPlaylist = dataStore.get('userPlaylists').find((playlist) => playlist.name === value);
@@ -43,14 +53,8 @@ async function onPlaylistNameConfirm(value) {
             }
         }
 
-        const playlist_id = dataStore.get('playlistId');
-        if (playlist_id) {
-            const playlist_info = await fetchPlaylistInfo(playlist_id);
-            dataStore.set('playlistName', playlist_info.name);
-            dataStore.set('playlistInfo', playlist_info);
-        } else {
-            dataStore.set('playlistInfo', null);
-        }
+        const playlistId = dataStore.get('playlistId');
+        await updatePlaylistInfo(playlistId);
     }
 };
 
@@ -69,4 +73,4 @@ function updateDataStore(updated_data_store) {
 }
 
 
-export { onPlaylistNameConfirm, onPlaylistFormSubmit, updateDataStore };
+export { onPlaylistNameConfirm, onPlaylistFormSubmit, updateDataStore, updatePlaylistInfo };

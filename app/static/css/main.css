@@ -78,8 +78,7 @@ input[type="text"]::placeholder {
   max-width: 100%;
 }
 
-#playlist-input, #question-input {
-  width: 100%;
+#playlist-input, #question-input, #playlist-link-input {
   padding: 6px 12px;
   font-size: 14px;
   line-height: 1.42857143;
@@ -144,6 +143,21 @@ input[type="submit"]:hover, .button:hover {
   background-color: #1ed760;
 }
 
+#url-search-button {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: normal;
+  background-color: #282828;
+  border: 1px solid #333;
+  color: #b3b3b3;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+#url-search-button:hover {
+  background-color: #333;
+  color: #fff;
+}
+
 #toggle-code-button {
   background-color: #282828;
   border: 1px solid #333;
@@ -155,7 +169,6 @@ input[type="submit"]:hover, .button:hover {
   background-color: #333;
   color: #1ed760;
 }
-
 
 .playlist-info {
   margin-top: 30px;

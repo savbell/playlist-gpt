@@ -21,14 +21,18 @@
     <h3>Ask a question about your Spotify playlist and see if OpenAI's language model can write the necessary Python code to answer it!</h3>
 
     <form action="/" method="post" role="search" id="playlist-form">
-        <label for="playlist-input">Your playlist:</label>
+        <label for="playlist-input">Search for a playlist:</label>
         <div class="input-wrapper">
             <div id="playlist-autocomplete-container"></div>
         </div>
+        
+        <label for="playlist-link">Or paste a Spotify playlist link:</label>
+        <input type="text" name="playlist-link" class="text-input" id="playlist-link-input" autocomplete="off" placeholder="Paste Spotify playlist link here." />
+        <button type="button" class="button" id="url-search-button" aria-label="Search for Spotify playlist by URL">Search by URL</button>
 
 
         <label for="question">What you want to know about it:</label>
-        <input type="text" name="question" id="question-input" autocomplete="off" placeholder="Enter your question." required />
+        <input type="text" name="question" class="text-input" id="question-input" autocomplete="off" placeholder="Enter your question." required />
 
         <input type="submit" value="Find out!" title="Submit your question" />
     </form>

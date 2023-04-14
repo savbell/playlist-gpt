@@ -1,7 +1,7 @@
 import { dataStore, filterPlaylists } from './dataStore.js';
-import { decodeHtmlEntities } from './utils.js';
-import { fetchUserPlaylists, sendFormData } from './api.js';
-import { onPlaylistFormSubmit, onPlaylistNameConfirm, updateDataStore } from './listeners.js';
+import { decodeHtmlEntities, extractPlaylistIdFromLink } from './utils.js';
+import { fetchUserPlaylists, resolveShortUrl, sendFormData } from './api.js';
+import { onPlaylistFormSubmit, onPlaylistNameConfirm, updatePlaylistInfo, updateDataStore } from './listeners.js';
 
 
 function showLoadingIndicator() {
@@ -15,13 +15,16 @@ function hideLoadingIndicator() {
     loadingIndicator.style.display = 'none';
 };
 
+
 export function hideGeneratedCode() {
     document.querySelector(".code").style.display = "none";
 }
 
+
 export function hideResult() {
     document.querySelector(".result").style.display = "none";
 }
+
 
 function initializePlaylistAutocomplete() {
     const playlistInputContainer = document.getElementById('playlist-autocomplete-container');
@@ -47,6 +50,7 @@ function initializePlaylistAutocomplete() {
   
     const playlistInput = document.getElementById('playlist-input');
     playlistInput.classList.add('playlist-search-input');
+    playlistInput.addEventListener('input', () => document.getElementById('playlist-link-input').value = '');
 };
 
 
@@ -56,29 +60,54 @@ async function submitForm(event) {
     hideResult();
     showLoadingIndicator();
     
-    const form_type = event.target.id.slice(0, event.target.id.indexOf("-form"));
+    const formType = event.target.id.slice(0, event.target.id.indexOf("-form"));
   
-    if (form_type === "playlist") {
-        let playlist_name = document.querySelector("#playlist-input").value;
+    if (formType === "playlist") {
+        let playlistName = document.querySelector("#playlist-input").value;
         let question = document.querySelector("#question-input").value;
-        await onPlaylistFormSubmit(playlist_name, question);
+        await onPlaylistFormSubmit(playlistName, question);
     }
     
     const form_data = {
-          formType: form_type,
+          formType: formType,
           data: dataStore.getAllData(),
     };
   
-    const updated_data_store = await sendFormData("/", form_data);
-    updateDataStore(updated_data_store);
+    const updatedDataStore = await sendFormData("/", form_data);
+    updateDataStore(updatedDataStore);
     
-    if (form_type === "code") {
+    if (formType === "code") {
         const latestGptResponse = dataStore.get("gptResponses")?.slice(-1)[0];
         handleResultEvent(latestGptResponse.result, latestGptResponse.error);
     }
     
     hideLoadingIndicator();
 };
+
+
+async function handleSearchButtonClick(event) {
+    event.preventDefault();
+
+    const playlistLink = document.getElementById('playlist-link-input').value;
+    const extracted = extractPlaylistIdFromLink(playlistLink);
+
+    if (extracted) {
+        const { id, isShortUrl } = extracted;
+        const playlistId = isShortUrl ? await resolveShortUrl(playlistLink) : id;
+
+        if (playlistId) {
+            await updatePlaylistInfo(playlistId);
+            const playlistName = dataStore.get('playlistName');
+            const playlistInput = document.getElementById('playlist-input');
+            playlistInput.value = playlistName;
+        } else {
+            alert('Failed to resolve the Spotify playlist ID.');
+        }
+    } else {
+        alert('Invalid Spotify playlist link. Please check the link and try again.');
+    }
+};
+
 
 
 export function handlePlaylistNameEvent(playlistName) {
@@ -88,6 +117,7 @@ export function handlePlaylistNameEvent(playlistName) {
 
 export function handlePlaylistInfoEvent(playlistInfo) {
     if (playlistInfo) {
+        document.getElementById('playlist-link-input').value = playlistInfo.external_urls.spotify;
         document.getElementById('playlist-name').innerHTML = `<a href="${playlistInfo.external_urls.spotify}" target="_blank">
             ${decodeHtmlEntities(playlistInfo.name)}</a>`;
         document.getElementById('playlist-image').src = playlistInfo.images[0].url || "";
@@ -98,6 +128,7 @@ export function handlePlaylistInfoEvent(playlistInfo) {
         document.getElementById('author-name').href = playlistInfo.owner.external_urls.spotify || "#";
         document.getElementById('playlist-info').style.display = 'block';
     } else {
+        document.getElementById('playlist-link-input').value = '';
         document.getElementById('playlist-info').style.display = 'none';
     }
 };
@@ -157,9 +188,12 @@ function initializeForms() {
     });
 }
 
-function initializeCodeButtons() {
+function initializeButtons() {
     const toggleCodeButton = document.getElementById("toggle-code-button");
+    const searchButton = document.getElementById("url-search-button");
+
     toggleCodeButton.addEventListener("click", toggleGeneratedCode);
+    searchButton.addEventListener("click", handleSearchButtonClick);
 }
 
 
@@ -178,6 +212,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchUserPlaylists();
     initializeForms();
     initializePlaylistAutocomplete();
-    initializeCodeButtons();
+    initializeButtons();
     initializeSampleQuestions();
 });

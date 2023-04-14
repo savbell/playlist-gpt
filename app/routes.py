@@ -1,7 +1,8 @@
 from app.helpers.openai import ask_model
 from app.helpers.prompts import get_playlist_messages, extract_code_and_comments
 from app.helpers.spotify import execute_playlist_code, get_playlist_by_id, get_user_playlists, get_playlist_by_name
-from . import datetime, Blueprint, jsonify, render_template, request
+from app.helpers.utils import extract_playlist_id_from_link
+from . import datetime, Blueprint, jsonify, render_template, request, requests
 
 bp = Blueprint('routes', __name__)
 
@@ -58,3 +59,16 @@ def search_playlist(playlist_name):
 @bp.route("/playlist-info/<string:playlist_id>", methods=("GET",))
 def get_playlist_info(playlist_id):
     return jsonify(get_playlist_by_id(playlist_id))
+
+
+@bp.route("/resolve-short-url/<path:short_url>", methods=("GET",))
+def resolve_short_url(short_url):
+    try:
+        response = requests.get(short_url)
+        playlist_id = extract_playlist_id_from_link(response.url)
+        if playlist_id:
+            return jsonify({"id": playlist_id})
+        else:
+            return jsonify({"error": "Failed to extract playlist ID from the expanded URL."}), 400
+    except Exception as e:
+        return jsonify({"error": f"An error occurred while resolving the short URL: {str(e)}"}), 500
