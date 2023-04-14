@@ -54,7 +54,6 @@ async function submitForm(event) {
     if (form_type === "playlist") {
       let playlist_name = document.querySelector("#playlist-input").value;
       let question = document.querySelector("#question-input").value;
-      console.log('submitForm');
       await onPlaylistFormSubmit(playlist_name, question);
     }
     
