@@ -79,7 +79,12 @@ async function submitForm(event) {
     if (formType === "code") {
         const latestGptResponse = dataStore.get("gptResponses")?.slice(-1)[0];
         handleResultEvent(latestGptResponse.result, latestGptResponse.error);
-    }
+        if (latestGptResponse.error) {
+            document.getElementById("debug-button").style.display = "block";
+        } else {
+            document.getElementById("debug-button").style.display = "none";
+        }
+    };
     
     hideLoadingIndicator();
 };
@@ -199,6 +204,23 @@ async function handleCopyCodeButtonClick() {
 };
 
 
+async function handleDebugButtonClick() {
+    showLoadingIndicator();
+    hideGeneratedCode();
+    hideResult();
+
+    const formData = {
+        formType: "debug",
+        data: dataStore.getAllData(),
+    };
+
+    const updatedDataStore = await sendFormData("/", formData);
+    updateDataStore(updatedDataStore);
+
+    hideLoadingIndicator();
+}
+
+
 function initializeForms() {
     const forms = document.querySelectorAll('form');
     forms.forEach((form) => {
@@ -210,10 +232,12 @@ function initializeButtons() {
     const toggleCodeButton = document.getElementById("toggle-code-button");
     const searchButton = document.getElementById("url-search-button");
     const copyCodeButton = document.getElementById('copy-code-button');
+    const debugCodeButton = document.getElementById('debug-button');
 
     toggleCodeButton.addEventListener("click", toggleGeneratedCode);
     searchButton.addEventListener("click", handleSearchButtonClick);
     copyCodeButton.addEventListener("click", handleCopyCodeButtonClick);
+    debugCodeButton.addEventListener("click", handleDebugButtonClick);
 }
 
 

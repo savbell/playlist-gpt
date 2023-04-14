@@ -1,7 +1,7 @@
 from app.helpers.openai import ask_model
-from app.helpers.prompts import get_playlist_messages, extract_code_and_comments
+from app.helpers.prompts import get_debug_messages, get_playlist_messages
 from app.helpers.spotify import execute_playlist_code, get_playlist_by_id, get_user_playlists, get_playlist_by_name
-from app.helpers.utils import extract_playlist_id_from_link
+from app.helpers.utils import extract_playlist_id_from_link, extract_code_and_comments, add_dev_notes
 from . import datetime, Blueprint, jsonify, render_template, request, requests
 
 bp = Blueprint('routes', __name__)
@@ -15,7 +15,7 @@ def index():
 
         if form_type == "playlist":
             gpt_response = ask_model(get_playlist_messages(data["playlistName"], data["question"]))
-            gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
+            gpt_response, gpt_code, gpt_comments = extract_code_and_comments(gpt_response)
             timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
             gpt_response_object = {
                 "timestamp": timestamp,
@@ -38,6 +38,23 @@ def index():
                 last_gpt_response["result"] = result
                 last_gpt_response["error"] = error
                 
+        elif form_type == "debug":
+            last_gpt_response = data["gptResponses"][-1]
+            debug_response = ask_model(get_debug_messages(data["playlistName"], data["question"], last_gpt_response["code"], last_gpt_response["error"]))
+            _, gpt_code, gpt_comments = extract_code_and_comments(debug_response)
+            timestamp = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+            gpt_response_object = {
+                "timestamp": timestamp,
+                "playlistInfo": data["playlistInfo"],
+                "question": data["question"],
+                "response": debug_response,
+                "code": gpt_code,
+                "comments": gpt_comments,
+                "result": None,
+                "error": None,
+            }
+            data["gptResponses"].append(gpt_response_object)
+
         return jsonify(data)
     
     return render_template("index.html")

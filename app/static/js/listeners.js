@@ -33,6 +33,7 @@ async function updatePlaylistInfo(playlistId) {
     if (playlistId) {
         const playlistInfo = await fetchPlaylistInfo(playlistId);
         dataStore.set('playlistName', playlistInfo.name);
+        dataStore.set('playlistId', playlistId);
         dataStore.set('playlistInfo', playlistInfo);
     } else {
         dataStore.set('playlistInfo', null);
@@ -40,13 +41,16 @@ async function updatePlaylistInfo(playlistId) {
 }
 
 async function onPlaylistNameConfirm(value) {
-    if (value) {
+    const currentPlaylistName = dataStore.get('playlistInfo')?.name;
+    const currentPlaylistId = dataStore.get('playlistId');
+
+    if (value && (value !== currentPlaylistName || !currentPlaylistId)) {
         const selectedPlaylist = dataStore.get('userPlaylists').find((playlist) => playlist.name === value);
-        if (selectedPlaylist && selectedPlaylist.id !== dataStore.get('playlistId')) {
+        if (selectedPlaylist && selectedPlaylist.id !== currentPlaylistId) {
             dataStore.set('playlistId', selectedPlaylist.id);
         } else if (!selectedPlaylist) {
             const playlist_info = await searchPlaylistName(value);
-            if (playlist_info && playlist_info.id !== dataStore.get('playlistId')) {
+            if (playlist_info && playlist_info.id !== currentPlaylistId) {
                 dataStore.set('playlistId', playlist_info.id);
             } else {
                 dataStore.set('playlistId', null);

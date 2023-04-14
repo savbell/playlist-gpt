@@ -164,6 +164,13 @@ input[type="submit"]:hover, .button:hover {
   gap: 10px;
 }
 
+.result-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
 
 #toggle-code-button, #copy-code-button {
   background-color: #282828;

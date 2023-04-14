@@ -57,7 +57,10 @@
     <div class="result" style="display:none">
         <h2>Result:</h2>
         <p id="result-text"></p>
-        <button class="button" id="toggle-code-button" aria-label="Toggle generated code visibility">Show generated code</button>
+        <div class="result-button-container">
+            <button class="button" id="debug-button" aria-label="Send generated code to GPT to debug">Ask GPT to debug code</button>
+            <button class="button" id="toggle-code-button" aria-label="Toggle generated code visibility">Show generated code</button>
+        </div>
     </div>
 
     <div class="code" style="display:none">
@@ -74,9 +77,9 @@
 
     <div class="sample-questions">
         <h2>Sample questions:</h2>
-        <p><a href="#" class="sample-question">What's the most popular song in my playlist?</a></p>
+        <p><a href="#" class="sample-question">What is the most popular song in my playlist?</a></p>
+        <p><a href="#" class="sample-question">When was the oldest track in my playlist released?</a></p>
         <p><a href="#" class="sample-question">What are the three most common genres in my playlist?</a></p>
-        <p><a href="#" class="sample-question">How many songs in my playlist were released after March 2020?</a></p>
     </div>
     
     

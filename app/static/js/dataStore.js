@@ -68,7 +68,7 @@ const dataStore = {
 function filterPlaylists(input) {
     const userPlaylists = dataStore.get('userPlaylists');
     return userPlaylists.filter((playlist) => playlist.name.toLowerCase().startsWith(input.toLowerCase()));
-  };  
+};
 
 
 export { dataStore, eventSystem, filterPlaylists };
