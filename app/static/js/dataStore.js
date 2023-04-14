@@ -1,3 +1,17 @@
+export class GptResponse {
+    constructor(timestamp, playlistInfo, question, response, code, comments, result, error) {
+        this.timestamp = timestamp;
+        this.playlistInfo = playlistInfo;
+        this.question = question;
+        this.response = response;
+        this.code = code;
+        this.comments = comments;
+        this.result = result;
+        this.error = error;
+    }
+}
+
+
 const eventSystem = {
     events: {},
     subscribe: function (eventName, callback) {
@@ -31,9 +45,7 @@ const dataStore = {
         playlistId: null,
         playlistInfo: null,
         question: null,
-        gptResponse: null,
-        result: null,
-        error: null,
+        gptResponses: [],
     },
     get: function (key) {
         return this._data[key];
@@ -46,8 +58,6 @@ const dataStore = {
         return { ...this._data };
     },
     updateData: function (updated_data_store) {
-        console.log('Current data: ', this._data);
-        console.log('Updated data: ', updated_data_store);
         Object.keys(updated_data_store).forEach((key) => {
             this.set(key, updated_data_store[key]);
         });

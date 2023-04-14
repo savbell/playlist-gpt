@@ -26,7 +26,6 @@
             <div id="playlist-autocomplete-container"></div>
         </div>
 
-        <input type="hidden" id="playlist-hidden-playlist-id" name="playlist_id" value="" />
 
         <label for="question">What you want to know about it:</label>
         <input type="text" name="question" id="question-input" autocomplete="off" placeholder="Enter your question." required />
@@ -62,9 +61,6 @@
         <h2>Generated Response:</h2>
         <pre><code id="generated-response"></code></pre>
         <form action="/" method="post" role="search" id="code-form">
-            <input type="hidden" id="code-hidden-playlist-name" name="playlist_name" value="" />
-            <input type="hidden" id="code-hidden-playlist-id" name="playlist_id" value="" />
-            <input type="hidden" id="code-hidden-gpt-response" name="gpt_response" value="" />
             <input type="submit" value="Looks good – run code!" title="Run generated code" />
         </form>
     </div>

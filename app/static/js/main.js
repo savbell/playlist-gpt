@@ -15,6 +15,13 @@ function hideLoadingIndicator() {
     loadingIndicator.style.display = 'none';
 };
 
+export function hideGeneratedCode() {
+    document.querySelector(".code").style.display = "none";
+}
+
+export function hideResult() {
+    document.querySelector(".result").style.display = "none";
+}
 
 function initializePlaylistAutocomplete() {
     const playlistInputContainer = document.getElementById('playlist-autocomplete-container');
@@ -45,16 +52,16 @@ function initializePlaylistAutocomplete() {
 
 async function submitForm(event) {
     event.preventDefault();
+    hideGeneratedCode();
+    hideResult();
     showLoadingIndicator();
-    document.querySelector(".result").style.display = "none";
-    document.querySelector(".code").style.display = "none";
     
     const form_type = event.target.id.slice(0, event.target.id.indexOf("-form"));
   
     if (form_type === "playlist") {
-      let playlist_name = document.querySelector("#playlist-input").value;
-      let question = document.querySelector("#question-input").value;
-      await onPlaylistFormSubmit(playlist_name, question);
+        let playlist_name = document.querySelector("#playlist-input").value;
+        let question = document.querySelector("#question-input").value;
+        await onPlaylistFormSubmit(playlist_name, question);
     }
     
     const form_data = {
@@ -65,8 +72,13 @@ async function submitForm(event) {
     const updated_data_store = await sendFormData("/", form_data);
     updateDataStore(updated_data_store);
     
+    if (form_type === "code") {
+        const latestGptResponse = dataStore.get("gptResponses")?.slice(-1)[0];
+        handleResultEvent(latestGptResponse.result, latestGptResponse.error);
+    }
+    
     hideLoadingIndicator();
-};  
+};
 
 
 export function handlePlaylistNameEvent(playlistName) {
@@ -91,19 +103,21 @@ export function handlePlaylistInfoEvent(playlistInfo) {
 };
 
 
-export function handleGptResponseEvent(gptResponse) {
-    document.getElementById("generated-response").textContent = gptResponse;
-    if (gptResponse) {
+export function handleGptResponseEvent(gptResponses) {
+    if (gptResponses && gptResponses.length > 0) {
+        const latestGptResponse = gptResponses[gptResponses.length - 1];
+        document.getElementById("generated-response").textContent = latestGptResponse.response;
         document.querySelector(".code").style.display = "block";
     } else {
+        document.getElementById("generated-response").textContent = '';
         document.querySelector(".code").style.display = "none";
     }
 };
 
 
-export function handleResultEvent(result) {
-    if (result) {
-        document.getElementById("result-text").innerHTML = result;
+export function handleResultEvent(result, error) {
+    if (result || error) {
+        document.getElementById("result-text").innerHTML = result || error;
         document.querySelector(".result").style.display = "block";
         document.querySelector(".code").style.display = "none";
         document.getElementById("toggle-code-button").checked = false;
@@ -145,7 +159,6 @@ function initializeForms() {
 
 function initializeCodeButtons() {
     const toggleCodeButton = document.getElementById("toggle-code-button");
-
     toggleCodeButton.addEventListener("click", toggleGeneratedCode);
 }
 

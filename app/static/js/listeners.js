@@ -4,7 +4,8 @@ import {
     handlePlaylistNameEvent,
     handlePlaylistInfoEvent,
     handleGptResponseEvent,
-    handleResultEvent,
+    hideGeneratedCode,
+    hideResult,
 } from './main.js';
 
 
@@ -14,10 +15,7 @@ eventSystem.subscribe('playlistName', handlePlaylistNameEvent);
 eventSystem.subscribe('playlistInfo', handlePlaylistInfoEvent);
 
 
-eventSystem.subscribe('gptResponse', handleGptResponseEvent);
-
-
-eventSystem.subscribe('result', handleResultEvent);
+eventSystem.subscribe('gptResponses', handleGptResponseEvent);
 
 
 eventSystem.subscribe('playlistId', async (playlist_id) => {
@@ -60,7 +58,9 @@ async function onPlaylistNameConfirm(value) {
 async function onPlaylistFormSubmit(playlist_name, question) {
     await onPlaylistNameConfirm(playlist_name);
     dataStore.set('question', question);
-    dataStore.set('gptResponse', null);
+    dataStore.set('gptResponses', null);
+    hideGeneratedCode();
+    hideResult();
 };
 
 
