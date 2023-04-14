@@ -7,7 +7,7 @@
         href="{{ url_for("static", filename="images/playlistgpt-icon.png") }}"
     />
     <link rel="stylesheet" href="{{ url_for("static", filename="css/main.css") }}" />
-    <script src="{{ url_for("static", filename="js/main.js") }}"></script>
+    <script type="module" src="{{ url_for("static", filename="js/main.js") }}"></script>
 
     <link rel="stylesheet" href="https://unpkg.com/accessible-autocomplete@2.0.3/dist/accessible-autocomplete.min.css">
     <script src="https://unpkg.com/accessible-autocomplete@2.0.3"></script>
@@ -71,16 +71,11 @@
 
     <div class="sample-questions">
         <h2>Sample questions:</h2>
-        <p><a href="#" onclick="fillQuestion('What\'s the most popular song in my playlist?'); return false;">
-            What's the most popular song in my playlist?
-        </a></p>
-        <p><a href="#" onclick="fillQuestion('What are the three most common genres in my playlist?'); return false;">
-            What are the three most common genres in my playlist?
-        </a></p>
-        <p><a href="#" onclick="fillQuestion('How many songs in my playlist were released after March 2020?'); return false;">
-            How many songs in my playlist were released after March 2020?
-        </a></p>
+        <p><a href="#" class="sample-question">What's the most popular song in my playlist?</a></p>
+        <p><a href="#" class="sample-question">What are the three most common genres in my playlist?</a></p>
+        <p><a href="#" class="sample-question">How many songs in my playlist were released after March 2020?</a></p>
     </div>
+    
     
     <footer class="footer">
         <p>Created by Sav Bell</p>
